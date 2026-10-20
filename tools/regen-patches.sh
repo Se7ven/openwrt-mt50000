@@ -207,11 +207,11 @@ PY
 PENDING="target/linux/generic/pending-6.18"
 mkdir -p "${OUT}/kernel"
 fetch "${GLINET}/${PENDING}/795-10-net-dsa-realtek-add-rtl8366ub.patch" \
-	"${OUT}/kernel/940-01-net-dsa-realtek-add-rtl8366ub.patch"
+	"${OUT}/kernel/990-01-net-dsa-realtek-add-rtl8366ub.patch"
 fetch "${GLINET}/${PENDING}/795-11-net-dsa-rtl8366ub-8021q-ppe-offload.patch" \
-	"${OUT}/kernel/940-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch"
+	"${OUT}/kernel/990-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch"
 fetch "${GLINET}/${PENDING}/795-12-net-mediatek-init-dummy-napi-before-netdev-registration.patch" \
-	"${OUT}/kernel/940-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch"
+	"${OUT}/kernel/990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch"
 
 rm -rf "${WORK}"
 echo "patches regenerated in ${OUT}"

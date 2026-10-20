@@ -93,5 +93,5 @@ ls /sys/class/net | grep -E "lan[12]" # netdev'ы DSA
 ```
 
 Если `lan1`/`lan2` не появились — смотрите `dmesg | grep -i dsa`: вероятно, не применён
-`940-01-net-dsa-realtek-add-rtl8366ub.patch` (нужна ветка с ядром 6.18) либо выбран
+`990-01-net-dsa-realtek-add-rtl8366ub.patch` (нужна ветка с ядром 6.18) либо выбран
 не тот вариант свитча.

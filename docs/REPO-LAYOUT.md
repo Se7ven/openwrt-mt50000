@@ -43,6 +43,7 @@
 | `install-runtime.sh` | создаёт в дереве пакет `package/glinet-mt5000-defaults` с файлами из `config/runtime/<variant>/`. Файлы `uci-defaults` и `init.d` становятся частью образа. |
 | `gen-config.sh` | генерация `.config`: `make defconfig` → merge `config/buildinfo/<flavour>.config.buildinfo` → merge фрагментов `config/fragments/*.config` → merge рантайм-добавок (пакет `glinet-mt5000-defaults`, `kmod-rtl8366ub` для swconfig) → финальный `make defconfig`. |
 | `merge-config.py` | слияние конфиг-фрагментов с `.config` (в upstream в 2026 году убрали режим `diffconfig.sh -m`, поэтому merger свой). Умеет разбирать `tmp/.config-target.in` и снимать остальных членов Kconfig-`choice` (target/subtarget/устройство) — без этого `make defconfig` оставляет старый профиль, а новый молча выбрасывает. |
+| `verify-kernel-patches.sh` | предполётная проверка kernel-патчей: распаковывает ядро, применяет относящиеся к нашим файлам патчи OpenWrt и проверяет наши патчи — иначе сборка падает в `toolchain/kernel-headers` через час работы. |
 | `build.sh` | главный оркестратор: fetch → patches → runtime → feeds → config → `make download` → `make` → collect. |
 | `collect-artifacts.sh` | копирование готовых образов (`*gl-mt5000*`), `.config`, `config.buildinfo` в каталог вывода + `SHA256SUMS` + `build-info.txt`. |
 
@@ -89,12 +90,17 @@ pending kernel/940-...    # патч копируется в target/linux/generi
 
 | Файл | Что делает | Оригинал GL.iNet |
 |---|---|---|
-| `940-01-net-dsa-realtek-add-rtl8366ub.patch` | **in-tree DSA-драйвер RTL8366UB** (`drivers/net/dsa/realtek/rtl8366ub_*`, Kconfig `NET_DSA_REALTEK_RTL8366UB`) | `795-10-net-dsa-realtek-add-rtl8366ub.patch` |
-| `940-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch` | теггер `NET_DSA_TAG_RTL8366UB_8021Q` + поддержка offload в `mtk_ppe_offload` (без него PPE не видит EtherType и не работает WAN→LAN offload) | `795-11-net-dsa-rtl8366ub-8021q-ppe-offload.patch` |
-| `940-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch` | фикс гонки в `mtk_eth_soc.c` (dummy NAPI device) — нужен, чтобы сеть поднималась без ошибок | `795-12-net-mediatek-init-dummy-napi-before-netdev-registration.patch` |
+| `990-01-net-dsa-realtek-add-rtl8366ub.patch` | **in-tree DSA-драйвер RTL8366UB** (`drivers/net/dsa/realtek/rtl8366ub_*`, Kconfig `NET_DSA_REALTEK_RTL8366UB`) | `795-10-net-dsa-realtek-add-rtl8366ub.patch` |
+| `990-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch` | теггер `NET_DSA_TAG_RTL8366UB_8021Q` + поддержка offload в `mtk_ppe_offload` (без него PPE не видит EtherType и не работает WAN→LAN offload) | `795-11-net-dsa-rtl8366ub-8021q-ppe-offload.patch` |
+| `990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch` | фикс гонки в `mtk_eth_soc.c` (dummy NAPI device) — нужен, чтобы сеть поднималась без ошибок | `795-12-net-mediatek-init-dummy-napi-before-netdev-registration.patch` |
 
-Номера переименованы с `795-xx` на `940-xx`, чтобы патчи применялись **после** всех штатных патчей
-текущего `target/linux/generic/pending-6.18/` (в upstream есть `936-...`).
+Номера переименованы с `795-xx` на `990-xx`, чтобы патчи применялись **после** всех
+штатных патчей OpenWrt (в `pending-6.18` максимальный номер 936, в `backport-6.18` — 942).
+
+Контекст kernel-патчей зависит от версии ядра: `990-03` перегенерирован под
+linux 6.18.55 (актуальная версия в `openwrt/openwrt@main`). При обновлении ядра
+используйте `tools/regen-kernel-patches.sh`, а перед сборкой —
+`scripts/verify-kernel-patches.sh` (предполётная проверка).
 
 ### `patches/glinet/series`
 
@@ -106,6 +112,18 @@ pending kernel/940-...    # патч копируется в target/linux/generi
 Пересобирает всю серию `patches/vanilla/` из двух источников:
 `openwrt/openwrt@main` (база) и `GLiNet-Tech/openwrt@mt5000` (изменения).
 Используется, когда upstream обновился и контекст патчей «поехал».
+
+### `tools/regen-kernel-patches.sh`
+
+Пересобирает kernel-патч `990-03` под актуальную версию ядра ветки: распаковывает
+ядро, применяет kernel-патчи OpenWrt и наши `990-01`/`990-02`, после чего
+генерирует патч заново. Вызывается вручную, когда ядро в ветке обновилось.
+
+### `tools/extract-stock-defaults.sh`
+
+Скачивает стоковую прошивку GL.iNet для MT5000, распаковывает squashfs и печатает
+`/etc/board.d/*`, `/etc/uci-defaults/*`, `/etc/config/{dhcp,firewall}` и список
+пакетов — эталон для `config/runtime/`.
 
 ---
 

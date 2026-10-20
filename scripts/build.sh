@@ -26,6 +26,7 @@ JOBS="$(nproc 2>/dev/null || echo 4)"
 EXTRA_FRAGMENTS=()
 SKIP_DOWNLOAD=0
 SKIP_BUILD=0
+SKIP_VERIFY=0
 # in CI every patch has to apply, locally a failing patch is only a warning
 STRICT="${STRICT_PATCHES:-}"
 if [ -z "${STRICT}" ]; then
@@ -44,6 +45,7 @@ while [ $# -gt 0 ]; do
 		--fragment)       EXTRA_FRAGMENTS+=("$2"); shift 2 ;;
 		--skip-download)  SKIP_DOWNLOAD=1; shift ;;
 		--skip-build)     SKIP_BUILD=1; shift ;;
+		--skip-verify)    SKIP_VERIFY=1; shift ;;
 		--strict)         STRICT=1; shift ;;
 		--no-strict)      STRICT=0; shift ;;
 		-h|--help)        awk 'NR>1 && /^#/ {print; next} NR>1 {exit}' "$0"; exit 0 ;;
@@ -92,6 +94,15 @@ log "=== 5/6 generating the configuration ==="
 log "=== 6/6 building ==="
 if [ "${SKIP_DOWNLOAD}" -eq 0 ]; then
 	make download -j"${JOBS}"
+
+	# preflight: check that our kernel patches fit the kernel of this branch
+	# (otherwise the build dies in the middle of the kernel build)
+	if [ "${SKIP_VERIFY}" -eq 0 ]; then
+		log "=== 6a/6 checking the kernel patches ==="
+		"${BUILDER_ROOT}/scripts/verify-kernel-patches.sh" --tree "${TREE}" \
+			--series "${SERIES}" --switch-driver "${SWITCH_DRIVER}" || \
+			die "the kernel patches do not fit the kernel of this branch (see docs/BUILD.md)"
+	fi
 fi
 if [ "${SKIP_BUILD}" -eq 0 ]; then
 	make -j"${JOBS}" V=s

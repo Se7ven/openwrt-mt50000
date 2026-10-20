@@ -113,7 +113,6 @@ CONFIG_PACKAGE_kmod-dummy=y
 Остаётся только target + обязательные пакеты (dnsmasq, firewall4, LuCI, базовые kmod).
 
 ## 5. Режим `swconfig`
-
 ```bash
 ./scripts/build.sh ... --switch-driver swconfig
 ```
@@ -151,6 +150,33 @@ git diff patches/vanilla/
 Скрипт заново скачивает базу (`openwrt/openwrt@main`) и изменения
 (`GLiNet-Tech/openwrt@mt5000`) и пересобирает `patches/vanilla/*.patch`.
 
+### 6.1. Kernel-патчи (драйвер RTL8366UB)
+
+Kernel-патчи применяются сборкой ядра командой `patch -p1`: если ядро в ветке
+обновилось, их контекст перестаёт совпадать и сборка падает в
+`toolchain/kernel-headers`. Чтобы этого не ждать:
+
+* **до сборки** выполняется предполётная проверка
+  (`scripts/verify-kernel-patches.sh`, вызывается из `scripts/build.sh` после
+  `make download`): она распаковывает ядро, применяет относящиеся к нашим
+  файлам kernel-патчи OpenWrt и проверяет наши патчи. Проверка занимает
+  несколько минут и экономит часы сборки; отключается `--skip-verify`;
+* **перегенерировать** патч под новое ядро:
+
+```bash
+# в дереве OpenWrt должен лежать тарбол ядра: make download
+./tools/regen-kernel-patches.sh --tree /path/to/openwrt
+git diff patches/vanilla/kernel/
+```
+
+Скрипт сам определяет версию ядра (`target/linux/generic/kernel-<series>`),
+применяет kernel-патчи OpenWrt и наши `990-01`/`990-02`, после чего
+пересобирает `990-03` (фикс гонки в `mtk_eth_soc.c`) под актуальный код ядра.
+
+> Номера `990-xx` выбраны с запасом: kernel-патчи применяются в алфавитном
+> порядке, и наши должны идти **после** всех штатных патчей OpenWrt
+> (сейчас максимальный номер в `pending-6.18` — 936, в `backport-6.18` — 942).
+
 ## 7. Отладка
 
 ```bash
@@ -173,6 +199,7 @@ cd /path/to/openwrt && make defconfig && \
 |---|---|
 | `the MT5000 device is not selected in .config` | в `.config` остался выбранным другой профиль: target/subtarget/устройство — члены Kconfig-`choice`, и `make defconfig` сохраняет старого члена choice. `scripts/merge-config.py` снимает остальных членов автоматически (`--kconfig tmp/.config-target.in`), но если файл сгенерированной Kconfig отсутствует — снимите старый символ вручную: `# CONFIG_TARGET_mediatek_filogic_DEVICE_openwrt_one is not set` |
 | `patch does not apply` | upstream изменил контекст — прогоните `tools/regen-patches.sh` |
+| `Patch failed! Please fix .../990-03-...` | ядро обновилось и контекст kernel-патча не совпал — `tools/regen-kernel-patches.sh --tree <openwrt>` (см. §6.1); предварительно ловится проверкой `scripts/verify-kernel-patches.sh` |
 | `kernel series mismatch` | ветка не 6.18 — нужен `--switch-driver swconfig` (для `dsa` ошибка выглядит как `... needs kernel 6.18, but the tree uses 6.12`) |
 | `unknown package` в `filogic.mk` | в ветке нет `mt7987-2p5g-phy-firmware` — берите `main` |
 | не собирается `kmod-rtl8366ub` | out-of-tree драйвер не совместим с новым ядром → `dsa` |

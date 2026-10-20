@@ -82,6 +82,7 @@ cd openwrt-gl-mt5000-builder
 │   ├── apply-patches.sh           # применение серии патчей + установка kernel-патчей
 │   ├── install-runtime.sh         # установка пакета с рантайм-конфигом GL.iNet
 │   ├── gen-config.sh              # сборка .config из buildinfo + фрагментов
+│   ├── verify-kernel-patches.sh   # предполётная проверка kernel-патчей
 │   ├── merge-config.py            # слияние конфиг-фрагментов с .config
 │   ├── build.sh                   # оркестратор всего процесса
 │   └── collect-artifacts.sh       # сборка образов, config.buildinfo, SHA256
@@ -94,9 +95,9 @@ cd openwrt-gl-mt5000-builder
 │   │   ├── 0004-...-mt5000.patch  # upgrade/platform.sh
 │   │   ├── 0005-...-rtl8366ub.patch  # kernel config (config-6.18)
 │   │   └── kernel/                # kernel-патчи (устанавливаются в pending-<версия>/)
-│   │       ├── 940-01-net-dsa-realtek-add-rtl8366ub.patch
-│   │       ├── 940-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch
-│   │       └── 940-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch
+│   │       ├── 990-01-net-dsa-realtek-add-rtl8366ub.patch
+│   │       ├── 990-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch
+│   │       └── 990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch
 │   └── glinet/series              # для ветки GL.iNet патчи не нужны (манифест пуст)
 ├── config/
 │   ├── buildinfo/                 # обязательная часть конфига сборки
@@ -113,7 +114,9 @@ cd openwrt-gl-mt5000-builder
 │       ├── dsa/                   # вариант с in-tree DSA-драйвером свитча
 │       └── swconfig/              # вариант с out-of-tree драйвером (как в стоке GL.iNet)
 ├── tools/
-│   └── regen-patches.sh           # пересборка серии патчей из upstream + ветки GL.iNet
+│   ├── regen-patches.sh           # пересборка серии патчей из upstream + ветки GL.iNet
+│   ├── regen-kernel-patches.sh    # пересборка kernel-патча под новое ядро
+│   └── extract-stock-defaults.sh  # распаковка стоковой прошивки GL.iNet (эталон дефолтов)
 ├── docs/
 │   ├── REPO-LAYOUT.md             # где что лежит и зачем
 │   ├── BUILD.md                   # локальная сборка, кастомизация
@@ -128,7 +131,7 @@ cd openwrt-gl-mt5000-builder
 
 | Режим | Драйвер | Порты | Когда использовать |
 |---|---|---|---|
-| `dsa` (по умолчанию) | in-tree `NET_DSA_REALTEK_RTL8366UB` (Linux 6.18, патчи `940-01`/`940-02`) | `lan1`, `lan2` (DSA), WAN — `eth1` | ветки OpenWrt с ядром 6.18 (`main`), ветка GL.iNet `mt5000` |
+| `dsa` (по умолчанию) | in-tree `NET_DSA_REALTEK_RTL8366UB` (Linux 6.18, патчи `990-01`/`990-02`) | `lan1`, `lan2` (DSA), WAN — `eth1` | ветки OpenWrt с ядром 6.18 (`main`), ветка GL.iNet `mt5000` |
 | `swconfig` | out-of-tree `kmod-rtl8366ub` из [gl-inet/gl-rtl8366ub](https://github.com/gl-inet/gl-rtl8366ub) — тот же драйвер, что в стоковой прошивке GL.iNet | swconfig-коммутатор `switch0` (порты 0,1, CPU 17@eth0), LAN — `eth0.1` | старые ветки OpenWrt (25.12 и т.п.), где in-tree DSA ещё нет; экспериментально |
 
 `dsa` — рекомендуемый режим: он же используется в ветке `mt5000` и в upstream PR #24237.

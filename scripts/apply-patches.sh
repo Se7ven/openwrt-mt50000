@@ -22,6 +22,7 @@ TREE=""
 SERIES=""
 STRICT=0
 SWITCH_DRIVER="dsa"
+PRINT_LIST=""
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -29,6 +30,7 @@ while [ $# -gt 0 ]; do
 		--series)         SERIES="$2"; shift 2 ;;
 		--strict)         STRICT=1; shift ;;
 		--switch-driver)  SWITCH_DRIVER="$2"; shift 2 ;;
+		--print-install-list) PRINT_LIST="$2"; shift 2 ;;
 		-h|--help)        awk 'NR>1 && /^#/ {print; next} NR>1 {exit}' "$0"; exit 0 ;;
 		*) die "unknown argument: $1" ;;
 	esac
@@ -87,6 +89,12 @@ apply_one() {
 install_pending() {
 	local patch_file="$1"
 	local name; name="$(basename "${patch_file}")"
+
+	if [ -n "${PRINT_LIST}" ]; then
+		# only collect the list of the kernel patches (used by the preflight check)
+		printf '%s\n' "${patch_file}" >> "${PRINT_LIST}"
+		return 0
+	fi
 
 	if [ -z "${PENDING_DIR}" ]; then
 		warn "no kernel pending directory found, skipping ${name}"
@@ -154,6 +162,11 @@ while IFS= read -r line || [ -n "${line}" ]; do
 			REQUIRED_SERIES="${arg1}"
 			;;
 		apply)
+			# in the "print install list" mode the tree is not touched, only
+			# the kernel patches are collected
+			if [ -n "${PRINT_LIST}" ]; then
+				continue
+			fi
 			apply_one "${SERIES_DIR}/${arg1}" || true
 			;;
 		pending)
@@ -184,7 +197,7 @@ done < "${SERIES}"
 # switch driver flavour
 #
 #   dsa      : the RTL8366UB is driven by the in-tree Realtek DSA driver
-#              (patch series 940-01/940-02) - this is the default and the mode
+#              (patch series 990-01/990-02) - this is the default and the mode
 #              used by the GL.iNet "mt5000" branch.
 #   swconfig : the RTL8366UB is driven by the out-of-tree Realtek SDK driver
 #              (kmod-rtl8366ub, same driver as in the GL.iNet stock firmware).
