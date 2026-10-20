@@ -1,0 +1,10 @@
+# patches/glinet/series - extra patches for the GL.iNet "mt5000" branch
+#
+# The GL.iNet branch (https://github.com/GLiNet-Tech/openwrt, branch mt5000)
+# already contains the DTS, the image definition, the board scripts and the
+# RTL8366UB DSA kernel patches, so normally nothing has to be patched here.
+#
+# The file is kept empty on purpose - it documents that the GL.iNet pipeline
+# needs no additional patching, and it gives a place for local fixes.
+#
+# Directives: require-series / apply / pending (see patches/vanilla/series)

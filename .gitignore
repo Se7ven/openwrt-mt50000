@@ -1,0 +1,20 @@
+# рабочие каталоги сборки
+build/
+build-*/
+out/
+
+# временные данные
+.work/
+.patchgen/
+
+# конфиги, которые генерируются
+config/buildinfo/*.local.*
+*.config.buildinfo.local
+
+# прочее
+*.log
+.DS_Store
+
+# python
+__pycache__/
+*.pyc

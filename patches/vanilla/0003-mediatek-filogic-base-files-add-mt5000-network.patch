@@ -1,0 +1,17 @@
+Subject: [PATCH] mediatek: filogic: add network config for GL-MT5000
+
+The two 2.5G LAN ports are the user ports (lan1/lan2) of the RTL8366UB
+DSA switch, the WAN port is the internal 2.5G PHY of the SoC (eth1).
+
+--- a/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
++++ b/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
+@@ -172,6 +172,9 @@
+ 	wavlink,wl-wnt100x3-ubootmod)
+ 		ucidef_set_interfaces_lan_wan eth0 eth1
+ 		;;
++	glinet,gl-mt5000)
++		ucidef_set_interfaces_lan_wan "lan1 lan2" eth1
++		;;
+ 	bazis,ax3000wm|\
+ 	cudy,m3000-v1|\
+ 	cudy,m3000-v1-ubootmod|\

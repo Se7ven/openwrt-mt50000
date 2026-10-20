@@ -1,0 +1,54 @@
+# config/buildinfo/vanilla.config.buildinfo
+#
+# Mandatory configuration of the GL-MT5000 firmware (vanilla OpenWrt flavour).
+#
+# The file is merged into the .config with
+#     python3 scripts/merge-config.py --config .config --merge config.buildinfo
+# so it uses the usual "diffconfig" syntax. Unknown symbols are dropped by
+# "make defconfig" (with a warning), therefore it is safe to keep the names of
+# packages that only exist in some OpenWrt versions.
+#
+# Everything that is optional lives in config/fragments/.
+
+# --- target / device --------------------------------------------------------
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_filogic=y
+CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt5000=y
+
+# --- root filesystem --------------------------------------------------------
+CONFIG_TARGET_ROOTFS_SQUASHFS=y
+# CONFIG_TARGET_ROOTFS_EXT4FS is not set
+CONFIG_TARGET_ROOTFS_PARTSIZE=512
+# CONFIG_TARGET_ROOTFS_INITRAMFS is not set
+
+# --- base system ------------------------------------------------------------
+CONFIG_PACKAGE_base-files=y
+CONFIG_PACKAGE_busybox=y
+CONFIG_PACKAGE_dropbear=y
+CONFIG_PACKAGE_tzdata=y
+CONFIG_PACKAGE_usbutils=y
+
+# --- network ----------------------------------------------------------------
+CONFIG_PACKAGE_dnsmasq-full=y
+# CONFIG_PACKAGE_dnsmasq is not set
+CONFIG_PACKAGE_firewall4=y
+CONFIG_PACKAGE_ip-full=y
+CONFIG_PACKAGE_ip-tiny=y
+CONFIG_PACKAGE_ethtool=y
+CONFIG_PACKAGE_ipset=y
+CONFIG_PACKAGE_kmod-ipt-nf-conntrack=y
+CONFIG_PACKAGE_kmod-nft-nat=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+CONFIG_PACKAGE_kmod-fs-ext4=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-f2fs=y
+CONFIG_PACKAGE_kmod-fs-ntfs=y
+CONFIG_PACKAGE_blkid=y
+CONFIG_PACKAGE_block-mount=y
+CONFIG_PACKAGE_mkfs-f2fs=y
+
+# --- web interface ----------------------------------------------------------
+CONFIG_PACKAGE_luci=y
+CONFIG_PACKAGE_luci-ssl=y
+CONFIG_PACKAGE_uhttpd-mod-ubus=y

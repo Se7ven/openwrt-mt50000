@@ -1,0 +1,17 @@
+Subject: [PATCH] mediatek: filogic: enable the RTL8366UB DSA driver
+
+Enable the in-tree Realtek DSA switch driver family and the RTL8366UB
+variant used by the GL.iNet GL-MT5000.
+
+--- a/target/linux/mediatek/filogic/config-6.18
++++ b/target/linux/mediatek/filogic/config-6.18
+@@ -325,6 +325,9 @@
+ CONFIG_NET_DSA_MT7530=y
+ CONFIG_NET_DSA_MT7530_MDIO=y
+ CONFIG_NET_DSA_MT7530_MMIO=y
++CONFIG_NET_DSA_REALTEK=y
++CONFIG_NET_DSA_REALTEK_MDIO=y
++CONFIG_NET_DSA_REALTEK_RTL8366UB=y
+ CONFIG_NET_DSA_TAG_MTK=y
+ CONFIG_NET_EGRESS=y
+ CONFIG_NET_FLOW_LIMIT=y

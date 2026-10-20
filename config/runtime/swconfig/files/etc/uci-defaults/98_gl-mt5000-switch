@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# Switch configuration for the GL-MT5000 when the out-of-tree Realtek SDK
+# driver (kmod-rtl8366ub, swconfig) is used instead of the in-tree DSA driver.
+#
+# This reproduces the switch layout of the GL.iNet stock firmware:
+#
+#   switch0 port 0   -> LAN 1
+#   switch0 port 1   -> LAN 2
+#   switch0 port 17  -> CPU port, connected to gmac0 (eth0)
+#
+# The LAN bridge is built on top of the CPU port (eth0.1).
+#
+. /lib/functions.sh
+. /lib/functions/uci-defaults.sh
+
+# --- the switch itself ------------------------------------------------------
+uci -q delete network.switch0
+uci set network.switch0='switch'
+uci set network.switch0.name='switch0'
+uci set network.switch0.reset='1'
+uci set network.switch0.enable_vlan='1'
+uci add_list network.switch0.ports='0'
+uci add_list network.switch0.ports='1'
+uci add_list network.switch0.ports='17@eth0'
+
+# --- the CPU port -----------------------------------------------------------
+uci -q delete network.eth0_1
+uci set network.eth0_1='device'
+uci set network.eth0_1.name='eth0.1'
+uci set network.eth0_1.ifname='eth0'
+
+# --- the LAN bridge ---------------------------------------------------------
+uci -q delete network.br_lan
+uci set network.br_lan='device'
+uci set network.br_lan.name='br-lan'
+uci set network.br_lan.type='bridge'
+uci add_list network.br_lan.ports='eth0.1'
+
+# --- the LAN interface ------------------------------------------------------
+if [ -n "$(uci -q get network.lan)" ]; then
+	uci -q batch <<-EOF
+		set network.lan.device='br-lan'
+		set network.lan.proto='static'
+		set network.lan.ipaddr='192.168.8.1'
+		set network.lan.netmask='255.255.255.0'
+		commit network
+	EOF
+fi
+
+exit 0

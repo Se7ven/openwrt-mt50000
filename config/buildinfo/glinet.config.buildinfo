@@ -1,0 +1,60 @@
+# config/buildinfo/glinet.config.buildinfo
+#
+# Mandatory configuration of the GL-MT5000 firmware built from the GL.iNet
+# repository (https://github.com/GLiNet-Tech/openwrt, branch mt5000).
+#
+# The GL.iNet branch already contains the DTS, the image definition, the board
+# scripts and the RTL8366UB DSA driver, so the configuration is nearly the same
+# as the vanilla one. The differences are marked below.
+#
+# The file is merged into the .config with
+#     python3 scripts/merge-config.py --config .config --merge config.buildinfo
+
+# --- target / device --------------------------------------------------------
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_filogic=y
+CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt5000=y
+
+# --- root filesystem --------------------------------------------------------
+CONFIG_TARGET_ROOTFS_SQUASHFS=y
+# CONFIG_TARGET_ROOTFS_EXT4FS is not set
+CONFIG_TARGET_ROOTFS_PARTSIZE=512
+# CONFIG_TARGET_ROOTFS_INITRAMFS is not set
+
+# --- base system ------------------------------------------------------------
+CONFIG_PACKAGE_base-files=y
+CONFIG_PACKAGE_busybox=y
+CONFIG_PACKAGE_dropbear=y
+CONFIG_PACKAGE_tzdata=y
+CONFIG_PACKAGE_usbutils=y
+
+# --- network ----------------------------------------------------------------
+CONFIG_PACKAGE_dnsmasq-full=y
+# CONFIG_PACKAGE_dnsmasq is not set
+CONFIG_PACKAGE_firewall4=y
+CONFIG_PACKAGE_ip-full=y
+CONFIG_PACKAGE_ip-tiny=y
+CONFIG_PACKAGE_ethtool=y
+CONFIG_PACKAGE_ipset=y
+CONFIG_PACKAGE_kmod-ipt-nf-conntrack=y
+CONFIG_PACKAGE_kmod-nft-nat=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+CONFIG_PACKAGE_kmod-fs-ext4=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-f2fs=y
+CONFIG_PACKAGE_kmod-fs-ntfs=y
+CONFIG_PACKAGE_blkid=y
+CONFIG_PACKAGE_block-mount=y
+CONFIG_PACKAGE_mkfs-f2fs=y
+
+# --- web interface ----------------------------------------------------------
+CONFIG_PACKAGE_luci=y
+CONFIG_PACKAGE_luci-ssl=y
+CONFIG_PACKAGE_uhttpd-mod-ubus=y
+
+# --- GL.iNet specific -------------------------------------------------------
+# The GL.iNet branch ships the DSA switch driver in the kernel, the runtime
+# configuration (GL.iNet style defaults) is added by the package
+# "glinet-mt5000-defaults" (see scripts/install-runtime.sh).
+CONFIG_PACKAGE_glinet-mt5000-defaults=y

@@ -1,0 +1,28 @@
+# patches/vanilla/series - MT5000 support for the vanilla (upstream) OpenWrt tree
+#
+# Directives:
+#   require-series <x.y>          kernel series needed by the "pending" patches
+#   apply <file>                  patch applied to the OpenWrt tree
+#   pending <file>                patch installed into target/linux/generic/pending-<series>/
+#
+# Optional condition (third field):
+#   driver=dsa | driver=swconfig  apply the entry only for the given switch driver
+#
+# The RTL8366UB DSA driver (940-01/940-02) is written against the Linux 6.18
+# DSA code, so the vanilla pipeline needs a 6.18 based branch (openwrt "main" at
+# the time of writing). For older branches use --switch-driver swconfig, which
+# builds the out-of-tree Realtek driver instead.
+
+require-series 6.18
+
+# --- board support -----------------------------------------------------------
+apply   0001-mediatek-dts-add-mt7987a-gl-mt5000.patch
+apply   0002-mediatek-image-add-glinet-gl-mt5000.patch
+apply   0003-mediatek-filogic-base-files-add-mt5000-network.patch
+apply   0004-mediatek-filogic-base-files-add-mt5000-upgrade.patch
+apply   0005-mediatek-filogic-kconfig-enable-rtl8366ub.patch                 driver=dsa
+
+# --- Realtek RTL8366UB switch driver (in-tree DSA) ---------------------------
+pending kernel/940-01-net-dsa-realtek-add-rtl8366ub.patch                     driver=dsa
+pending kernel/940-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch               driver=dsa
+pending kernel/940-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch
