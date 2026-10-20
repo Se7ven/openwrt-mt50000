@@ -1,0 +1,23 @@
+Subject: [PATCH] mediatek: filogic: add network config for GL-MT5000 (swconfig)
+
+Variant of the MT5000 network configuration for the out-of-tree Realtek
+SDK driver (kmod-rtl8366ub): the switch is a plain swconfig switch with
+the ports 0 and 1 as LAN and the port 17 as the CPU port, exactly like
+in the GL.iNet stock firmware.
+
+--- a/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
++++ b/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
+@@ -172,6 +172,13 @@
+ 	wavlink,wl-wnt100x3-ubootmod)
+ 		ucidef_set_interfaces_lan_wan eth0 eth1
+ 		;;
++	glinet,gl-mt5000)
++		ucidef_set_interfaces_lan_wan "eth0.1" eth1
++		ucidef_add_switch "switch0"
++		ucidef_add_switch_attr "switch0" "enable" true
++		ucidef_add_switch "switch0" "0:lan" "1:lan" "17@eth0"
++		ucidef_add_switch_attr "switch0" "reset" false
++		;;
+ 	bazis,ax3000wm|\
+ 	cudy,m3000-v1|\
+ 	cudy,m3000-v1-ubootmod|\

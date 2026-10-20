@@ -129,11 +129,11 @@ cd openwrt-gl-mt5000-builder
 | Режим | Драйвер | Порты | Когда использовать |
 |---|---|---|---|
 | `dsa` (по умолчанию) | in-tree `NET_DSA_REALTEK_RTL8366UB` (Linux 6.18, патчи `940-01`/`940-02`) | `lan1`, `lan2` (DSA), WAN — `eth1` | ветки OpenWrt с ядром 6.18 (`main`), ветка GL.iNet `mt5000` |
-| `swconfig` | out-of-tree `kmod-rtl8366ub` из [gl-inet/gl-rtl8366ub](https://github.com/gl-inet/gl-rtl8366ub) — тот же драйвер, что в стоковой прошивке GL.iNet | swconfig-коммутатор `switch0` (порты 0,1, CPU 17@eth0) | старые ветки OpenWrt, где in-tree DSA ещё нет; экспериментально |
+| `swconfig` | out-of-tree `kmod-rtl8366ub` из [gl-inet/gl-rtl8366ub](https://github.com/gl-inet/gl-rtl8366ub) — тот же драйвер, что в стоковой прошивке GL.iNet | swconfig-коммутатор `switch0` (порты 0,1, CPU 17@eth0), LAN — `eth0.1` | старые ветки OpenWrt (25.12 и т.п.), где in-tree DSA ещё нет; экспериментально |
 
 `dsa` — рекомендуемый режим: он же используется в ветке `mt5000` и в upstream PR #24237.
 `swconfig` подключается автоматически, когда выбран соответствующий `--switch-driver`
-(в дерево добавляется `package/kernel/rtl8366ub`).
+(в дерево добавляется `package/kernel/rtl8366ub`, DSA-патчи и требование «ядро 6.18» отключаются).
 
 ---
 

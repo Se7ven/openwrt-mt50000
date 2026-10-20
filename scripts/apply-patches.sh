@@ -108,40 +108,71 @@ while IFS= read -r line || [ -n "${line}" ]; do
 
 	# shellcheck disable=SC2086
 	set -- ${line}
-	directive="$1"; arg1="${2:-}"; arg2="${3:-}"
+	directive="$1"; arg1="${2:-}"; shift 2 2>/dev/null || true
+	conditions="$*"
 
-	# optional condition: "driver=dsa" / "driver=swconfig"
-	case "${arg2}" in
-		driver=*)
-			want="${arg2#driver=}"
-			if [ "${want}" != "${SWITCH_DRIVER}" ]; then
-				warn "skipped ${arg1} (only for driver=${want}, current: ${SWITCH_DRIVER})"
-				SKIPPED=$((SKIPPED + 1))
-				continue
-			fi
-			;;
-	esac
+	# optional conditions:
+	#   driver=<x>   the entry is only used with this switch driver
+	#   series=<x.y> the entry is only used with this kernel series
+	#   optional     the entry may be skipped if it does not fit the tree
+	want_driver=""
+	want_series=""
+	entry_optional=0
+	for cond in ${conditions}; do
+		case "${cond}" in
+			driver=*) want_driver="${cond#driver=}" ;;
+			series=*) want_series="${cond#series=}" ;;
+			optional)  entry_optional=1 ;;
+			*) die "unknown condition in series file: ${cond}" ;;
+		esac
+	done
+
+	# the driver of this build decides which flavour of the patches is used
+	if [ -n "${want_driver}" ] && [ "${want_driver}" != "${SWITCH_DRIVER}" ]; then
+		warn "skipped ${arg1} (only for driver=${want_driver}, current: ${SWITCH_DRIVER})"
+		SKIPPED=$((SKIPPED + 1))
+		continue
+	fi
+
+	# the kernel series of the tree decides whether the entry fits
+	if [ -n "${want_series}" ] && [ "${TREE_SERIES}" != "${want_series}" ]; then
+		if [ "${entry_optional}" -eq 1 ]; then
+			warn "skipped ${arg1} (needs kernel ${want_series}, tree uses ${TREE_SERIES})"
+			SKIPPED=$((SKIPPED + 1))
+			continue
+		fi
+		if [ "${STRICT}" -eq 1 ]; then
+			die "${arg1} needs kernel ${want_series}, but the tree uses ${TREE_SERIES} - use a ${want_series} based branch (e.g. 'main') or switch to --switch-driver swconfig"
+		fi
+		warn "skipped ${arg1} (needs kernel ${want_series}, tree uses ${TREE_SERIES})"
+		SKIPPED=$((SKIPPED + 1))
+		continue
+	fi
 
 	case "${directive}" in
 		require-series)
 			REQUIRED_SERIES="${arg1}"
-			if [ "${TREE_SERIES}" != "${REQUIRED_SERIES}" ]; then
-				warn "tree uses kernel ${TREE_SERIES}, but the RTL8366UB kernel patches need ${REQUIRED_SERIES}"
-				if [ "${STRICT}" -eq 1 ]; then
-					die "kernel series mismatch (strict mode) - use a ${REQUIRED_SERIES} based branch (e.g. 'main') or switch to --switch-driver swconfig"
-				fi
-			fi
 			;;
 		apply)
 			apply_one "${SERIES_DIR}/${arg1}" || true
 			;;
 		pending)
-			if [ "${REQUIRED_SERIES}" = "${TREE_SERIES}" ] || [ -z "${REQUIRED_SERIES}" ]; then
-				install_pending "${SERIES_DIR}/${arg1}"
-			else
-				warn "skipped kernel patch $(basename "${arg1}") (wrong kernel series)"
+			# the kernel patches have to match the kernel of the tree
+			need_series="${want_series:-${REQUIRED_SERIES}}"
+			if [ -n "${need_series}" ] && [ "${TREE_SERIES}" != "${need_series}" ]; then
+				if [ "${entry_optional}" -eq 1 ]; then
+					warn "skipped kernel patch $(basename "${arg1}") (needs kernel ${need_series}, tree uses ${TREE_SERIES})"
+					SKIPPED=$((SKIPPED + 1))
+					continue
+				fi
+				if [ "${STRICT}" -eq 1 ]; then
+					die "kernel patch $(basename "${arg1}") needs kernel ${need_series}, but the tree uses ${TREE_SERIES} - use a ${need_series} based branch (e.g. 'main') or switch to --switch-driver swconfig"
+				fi
+				warn "skipped kernel patch $(basename "${arg1}") (needs kernel ${need_series}, tree uses ${TREE_SERIES})"
 				SKIPPED=$((SKIPPED + 1))
+				continue
 			fi
+			install_pending "${SERIES_DIR}/${arg1}"
 			;;
 		*)
 			die "unknown directive in series file: ${directive}"

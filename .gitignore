@@ -18,3 +18,7 @@ config/buildinfo/*.local.*
 # python
 __pycache__/
 *.pyc
+
+# IDE
+.idea/
+.vscode/

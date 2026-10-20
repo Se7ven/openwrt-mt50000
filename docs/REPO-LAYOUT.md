@@ -57,10 +57,22 @@
 Манифест серии (формат: `<директива> <аргумент>`):
 
 ```
-require-series 6.18      # kernel-патчи ниже рассчитаны на ядро 6.18
+require-series 6.18      # kernel-версия, нужная следующим kernel-патчам
 apply   0001-...patch     # патч применяется к дереву OpenWrt
 pending kernel/940-...    # патч копируется в target/linux/generic/pending-<версия>/
 ```
+
+Условия записей (после имени файла):
+
+| Условие | Смысл |
+|---|---|
+| `driver=dsa` / `driver=swconfig` | запись используется только с этим драйвером свитча |
+| `series=6.18` | запись используется только с таким ядром |
+| `optional` | запись пропускается с предупреждением, если она не подходит дереву |
+
+Проверка версии ядра выполняется **только для записей, которые действительно ставятся**:
+в режиме `swconfig` DSA-патчи отбрасываются по условию `driver=`, и требование
+«ядро 6.18» не проверяется — поэтому ветки со старым ядром (25.12 и т.п.) собираются.
 
 ### `patches/vanilla/*.patch` (применяются к дереву)
 
@@ -68,7 +80,8 @@ pending kernel/940-...    # патч копируется в target/linux/generi
 |---|---|---|
 | `0001-mediatek-dts-add-mt7987a-gl-mt5000.patch` | добавляет `target/linux/mediatek/dts/mt7987a-gl-mt5000.dts` | ветка `mt5000` GL.iNet |
 | `0002-mediatek-image-add-glinet-gl-mt5000.patch` | добавляет определение образа `Device/glinet_gl-mt5000` в `target/linux/mediatek/image/filogic.mk` | ветка `mt5000` GL.iNet |
-| `0003-mediatek-filogic-base-files-add-mt5000-network.patch` | `board.d/02_network`: LAN = `lan1 lan2` (порты DSA-свитча), WAN = `eth1` | ветка `mt5000` GL.iNet |
+| `0003-mediatek-filogic-base-files-add-mt5000-network.patch` | `board.d/02_network` (DSA): LAN = `lan1 lan2` (порты DSA-свитча), WAN = `eth1` | ветка `mt5000` GL.iNet |
+| `0003s-mediatek-filogic-base-files-add-mt5000-network-swconfig.patch` | `board.d/02_network` (swconfig): LAN = `eth0.1`, коммутатор `switch0` с портами `0:lan`, `1:lan`, `17@eth0` — как в стоке GL.iNet | стоковая прошивка GL.iNet 4.9.0 |
 | `0004-mediatek-filogic-base-files-add-mt5000-upgrade.patch` | `upgrade/platform.sh`: разрешает sysupgrade на MT5000 | ветка `mt5000` GL.iNet |
 | `0005-mediatek-filogic-kconfig-enable-rtl8366ub.patch` | `target/linux/mediatek/filogic/config-6.18`: `CONFIG_NET_DSA_REALTEK{,_MDIO,_RTL8366UB}=y` | ветка `mt5000` GL.iNet |
 
@@ -129,10 +142,11 @@ config/runtime/dsa/files/etc/
 └── uci-defaults/99_gl-mt5000-defaults   # IP, DHCP, hostname, IPv6, firewall, console.gl-inet.com
 config/runtime/swconfig/files/etc/
 ├── init.d/gl-mt5000-led
-└── uci-defaults/
-    ├── 98_gl-mt5000-switch         # swconfig-коммутатор switch0 (порты 0,1, CPU 17@eth0)
-    └── 99_gl-mt5000-defaults
+└── uci-defaults/99_gl-mt5000-defaults
 ```
+
+Раскладку коммутатора в режиме `swconfig` задаёт не этот пакет, а `board.d/02_network`
+(патч `0003s-...-swconfig.patch`) — так же, как в стоковой прошивке GL.iNet.
 
 Важно: `/etc/config/*` **не** переопределяются пакетами (иначе конфликт с `dnsmasq`/`firewall4`),
 всё применяется через `uci-defaults` — ровно так же, как это делает стоковая прошивка GL.iNet.

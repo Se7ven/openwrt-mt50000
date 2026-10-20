@@ -112,9 +112,8 @@
 
 | Что | Файл |
 |---|---|
-| IP/DHCP/hostname/firewall/console.gl-inet.com | `config/runtime/dsa/files/etc/uci-defaults/99_gl-mt5000-defaults` |
-| то же для swconfig | `config/runtime/swconfig/files/etc/uci-defaults/99_gl-mt5000-defaults` |
-| раскладка коммутатора (swconfig) | `config/runtime/swconfig/files/etc/uci-defaults/98_gl-mt5000-switch` |
+| IP/DHCP/hostname/firewall/console.gl-inet.com | `config/runtime/{dsa,swconfig}/files/etc/uci-defaults/99_gl-mt5000-defaults` |
+| раскладка коммутатора (swconfig) | `board.d/02_network`, патч `patches/vanilla/0003s-...-network-swconfig.patch` |
 | LED | `config/runtime/*/files/etc/init.d/gl-mt5000-led` |
 | порты LAN/WAN (DSA) | `patches/vanilla/0003-mediatek-filogic-base-files-add-mt5000-network.patch` |
 | порты LAN/WAN (GL.iNet) | `board.d/02_network` в ветке `mt5000` |

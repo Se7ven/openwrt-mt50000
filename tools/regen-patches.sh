@@ -108,6 +108,40 @@ PY
 	diff -u --label "a/${NET}" --label "b/${NET}" "${WORK}/base/${NET}" "${WORK}/new/${NET}" || true
 } > "${OUT}/0003-mediatek-filogic-base-files-add-mt5000-network.patch"
 
+# ------------------------------- network config for the swconfig flavour ---
+# With the out-of-tree Realtek SDK driver (kmod-rtl8366ub) the switch is a
+# plain swconfig switch, the layout is the one of the GL.iNet stock firmware:
+# switch0 with the ports 0 and 1 as LAN and the port 17 as the CPU port.
+cp "${WORK}/base/${NET}" "${WORK}/new/${NET}"
+python3 - "${WORK}/new/${NET}" <<'PY'
+import sys
+path = sys.argv[1]
+txt = open(path).read()
+anchor = "\twavlink,wl-wnt100x3-ubootmod)\n\t\tucidef_set_interfaces_lan_wan eth0 eth1\n\t\t;;\n"
+block = ("\tglinet,gl-mt5000)\n"
+         "\t\tucidef_set_interfaces_lan_wan \"eth0.1\" eth1\n"
+         "\t\tucidef_add_switch \"switch0\"\n"
+         "\t\tucidef_add_switch_attr \"switch0\" \"enable\" true\n"
+         "\t\tucidef_add_switch \"switch0\" \"0:lan\" \"1:lan\" \"17@eth0\"\n"
+         "\t\tucidef_add_switch_attr \"switch0\" \"reset\" false\n"
+         "\t\t;;\n")
+if "gl-mt5000" in txt:
+    sys.exit(0)
+assert anchor in txt, "anchor not found in 02_network"
+txt = txt.replace(anchor, anchor + block, 1)
+open(path, "w").write(txt)
+PY
+{
+	echo "Subject: [PATCH] mediatek: filogic: add network config for GL-MT5000 (swconfig)"
+	echo
+	echo "Variant of the MT5000 network configuration for the out-of-tree Realtek"
+	echo "SDK driver (kmod-rtl8366ub): the switch is a plain swconfig switch with"
+	echo "the ports 0 and 1 as LAN and the port 17 as the CPU port, exactly like"
+	echo "in the GL.iNet stock firmware."
+	echo
+	diff -u --label "a/${NET}" --label "b/${NET}" "${WORK}/base/${NET}" "${WORK}/new/${NET}" || true
+} > "${OUT}/0003s-mediatek-filogic-base-files-add-mt5000-network-swconfig.patch"
+
 # ------------------------------------------------------ upgrade/platform.sh
 UPG="target/linux/mediatek/filogic/base-files/lib/upgrade/platform.sh"
 fetch "${UPSTREAM}/${UPG}" "${WORK}/base/${UPG}"

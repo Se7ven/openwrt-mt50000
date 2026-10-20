@@ -5,24 +5,30 @@
 #   apply <file>                  patch applied to the OpenWrt tree
 #   pending <file>                patch installed into target/linux/generic/pending-<series>/
 #
-# Optional condition (third field):
-#   driver=dsa | driver=swconfig  apply the entry only for the given switch driver
+# Optional conditions (after the file name):
+#   driver=dsa | driver=swconfig  the entry is only used with this switch driver
+#   series=6.18                    the entry is only used with this kernel series
+#   optional                      the entry is skipped if it does not fit the tree
 #
 # The RTL8366UB DSA driver (940-01/940-02) is written against the Linux 6.18
-# DSA code, so the vanilla pipeline needs a 6.18 based branch (openwrt "main" at
-# the time of writing). For older branches use --switch-driver swconfig, which
-# builds the out-of-tree Realtek driver instead.
+# DSA code, so the DSA flavour needs a 6.18 based branch (openwrt "main" at the
+# time of writing). Older branches have to be built with
+# --switch-driver swconfig: there the out-of-tree Realtek SDK driver is used
+# and no kernel patch is needed at all.
 
 require-series 6.18
 
 # --- board support -----------------------------------------------------------
 apply   0001-mediatek-dts-add-mt7987a-gl-mt5000.patch
 apply   0002-mediatek-image-add-glinet-gl-mt5000.patch
-apply   0003-mediatek-filogic-base-files-add-mt5000-network.patch
+apply   0003-mediatek-filogic-base-files-add-mt5000-network.patch                driver=dsa
+apply   0003s-mediatek-filogic-base-files-add-mt5000-network-swconfig.patch      driver=swconfig
 apply   0004-mediatek-filogic-base-files-add-mt5000-upgrade.patch
-apply   0005-mediatek-filogic-kconfig-enable-rtl8366ub.patch                 driver=dsa
+apply   0005-mediatek-filogic-kconfig-enable-rtl8366ub.patch                     driver=dsa series=6.18
 
 # --- Realtek RTL8366UB switch driver (in-tree DSA) ---------------------------
-pending kernel/940-01-net-dsa-realtek-add-rtl8366ub.patch                     driver=dsa
-pending kernel/940-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch               driver=dsa
-pending kernel/940-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch
+pending kernel/940-01-net-dsa-realtek-add-rtl8366ub.patch                       driver=dsa
+pending kernel/940-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch                 driver=dsa
+
+# --- MediaTek ethernet driver fix (not related to the switch) ----------------
+pending kernel/940-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch optional

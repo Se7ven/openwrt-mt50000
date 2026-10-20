@@ -127,12 +127,17 @@ CONFIG_PACKAGE_kmod-dummy=y
 
 ```
 switch0:  порт 0 → LAN1, порт 1 → LAN2, порт 17 (CPU) → eth0
-LAN:      br-lan ← eth0.1 (CPU-порт коммутатора)
+LAN:      eth0.1 (CPU-порт коммутатора)
 WAN:      eth1 (внутренний PHY)
 ```
 
+Эта раскладка прописывается в `board.d/02_network` (патч `0003s-...-swconfig.patch`),
+поэтому в режиме `swconfig` дополнительных uci-defaults для коммутатора не требуется.
+
 > ⚠️ Out-of-tree драйвер написан под старые ядра; на ядре 6.18 он может не собраться.
 > В таком случае используйте `--switch-driver dsa` на ветке с ядром 6.18.
+> Обратная ситуация тоже возможна: драйвер не собирается на 6.12 —
+> тогда нужен `dsa` и ветка с ядром 6.18.
 
 ## 6. Пересборка серии патчей
 
@@ -168,7 +173,7 @@ cd /path/to/openwrt && make defconfig && \
 |---|---|
 | `the MT5000 device is not selected in .config` | в `.config` остался выбранным другой профиль: target/subtarget/устройство — члены Kconfig-`choice`, и `make defconfig` сохраняет старого члена choice. `scripts/merge-config.py` снимает остальных членов автоматически (`--kconfig tmp/.config-target.in`), но если файл сгенерированной Kconfig отсутствует — снимите старый символ вручную: `# CONFIG_TARGET_mediatek_filogic_DEVICE_openwrt_one is not set` |
 | `patch does not apply` | upstream изменил контекст — прогоните `tools/regen-patches.sh` |
-| `kernel series mismatch` | ветка не 6.18 — нужен `--switch-driver swconfig` |
+| `kernel series mismatch` | ветка не 6.18 — нужен `--switch-driver swconfig` (для `dsa` ошибка выглядит как `... needs kernel 6.18, but the tree uses 6.12`) |
 | `unknown package` в `filogic.mk` | в ветке нет `mt7987-2p5g-phy-firmware` — берите `main` |
 | не собирается `kmod-rtl8366ub` | out-of-tree драйвер не совместим с новым ядром → `dsa` |
 | `luci-app-*` не появился | пакет переименован, см. `config/fragments/40-luci.config` |
