@@ -166,8 +166,10 @@ cd /path/to/openwrt && make defconfig && \
 
 | Симптом | Причина |
 |---|---|
+| `the MT5000 device is not selected in .config` | в `.config` остался выбранным другой профиль: target/subtarget/устройство — члены Kconfig-`choice`, и `make defconfig` сохраняет старого члена choice. `scripts/merge-config.py` снимает остальных членов автоматически (`--kconfig tmp/.config-target.in`), но если файл сгенерированной Kconfig отсутствует — снимите старый символ вручную: `# CONFIG_TARGET_mediatek_filogic_DEVICE_openwrt_one is not set` |
 | `patch does not apply` | upstream изменил контекст — прогоните `tools/regen-patches.sh` |
 | `kernel series mismatch` | ветка не 6.18 — нужен `--switch-driver swconfig` |
 | `unknown package` в `filogic.mk` | в ветке нет `mt7987-2p5g-phy-firmware` — берите `main` |
 | не собирается `kmod-rtl8366ub` | out-of-tree драйвер не совместим с новым ядром → `dsa` |
 | `luci-app-*` не появился | пакет переименован, см. `config/fragments/40-luci.config` |
+| пакет `glinet-mt5000-defaults` не создан | в `package/glinet-mt5000-defaults/Makefile` не хватает `include $(INCLUDE_DIR)/package.mk` |

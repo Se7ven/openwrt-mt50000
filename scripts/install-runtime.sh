@@ -60,6 +60,7 @@ cat > "${PKG_DIR}/Makefile" <<'EOF'
 # DHCP pool 192.168.8.100-249, hostname GL-MT5000, IPv6 disabled on WAN, ...).
 #
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/package.mk
 
 define Package/glinet-mt5000-defaults
   SECTION:=base

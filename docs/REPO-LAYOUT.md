@@ -42,7 +42,7 @@
 | `apply-patches.sh` | применение серии патчей из `patches/<flavour>/series`. Директивы: `require-series`, `apply`, `pending`. Есть каскад `git apply` → `git apply -3` → `patch -p1 --fuzz=3`. Режимы `--strict`/`--no-strict`. Дополнительно ставит out-of-tree драйвер `package/kernel/rtl8366ub` при `--switch-driver swconfig`. |
 | `install-runtime.sh` | создаёт в дереве пакет `package/glinet-mt5000-defaults` с файлами из `config/runtime/<variant>/`. Файлы `uci-defaults` и `init.d` становятся частью образа. |
 | `gen-config.sh` | генерация `.config`: `make defconfig` → merge `config/buildinfo/<flavour>.config.buildinfo` → merge фрагментов `config/fragments/*.config` → merge рантайм-добавок (пакет `glinet-mt5000-defaults`, `kmod-rtl8366ub` для swconfig) → финальный `make defconfig`. |
-| `merge-config.py` | слияние конфиг-фрагментов с `.config` (в upstream в 2026 году убрали режим `diffconfig.sh -m`, поэтому merger свой). |
+| `merge-config.py` | слияние конфиг-фрагментов с `.config` (в upstream в 2026 году убрали режим `diffconfig.sh -m`, поэтому merger свой). Умеет разбирать `tmp/.config-target.in` и снимать остальных членов Kconfig-`choice` (target/subtarget/устройство) — без этого `make defconfig` оставляет старый профиль, а новый молча выбрасывает. |
 | `build.sh` | главный оркестратор: fetch → patches → runtime → feeds → config → `make download` → `make` → collect. |
 | `collect-artifacts.sh` | копирование готовых образов (`*gl-mt5000*`), `.config`, `config.buildinfo` в каталог вывода + `SHA256SUMS` + `build-info.txt`. |
 
