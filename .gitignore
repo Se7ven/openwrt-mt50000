@@ -22,3 +22,8 @@ __pycache__/
 # IDE
 .idea/
 .vscode/
+
+# логи сборки
+job-logs.txt
+jobs-logs.txt
+*.log

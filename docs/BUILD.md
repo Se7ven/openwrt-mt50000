@@ -205,3 +205,4 @@ cd /path/to/openwrt && make defconfig && \
 | не собирается `kmod-rtl8366ub` | out-of-tree драйвер не совместим с новым ядром → `dsa` |
 | `luci-app-*` не появился | пакет переименован, см. `config/fragments/40-luci.config` |
 | пакет `glinet-mt5000-defaults` не создан | в `package/glinet-mt5000-defaults/Makefile` не хватает `include $(INCLUDE_DIR)/package.mk` |
+| `Package/glinet-mt5000-defaults is missing the VERSION field` | OpenWrt 2026 (сборка через `apk`) требует у пакета поля `TITLE`, `CATEGORY`, `SECTION` и `VERSION` — они задаются в `scripts/install-runtime.sh` |

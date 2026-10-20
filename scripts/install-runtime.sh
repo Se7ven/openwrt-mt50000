@@ -62,10 +62,15 @@ cat > "${PKG_DIR}/Makefile" <<'EOF'
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/package.mk
 
+# OpenWrt 2026 (apk) requires the fields TITLE, CATEGORY, SECTION and VERSION
+PKG_NAME:=glinet-mt5000-defaults
+PKG_VERSION:=1.0.0
+
 define Package/glinet-mt5000-defaults
   SECTION:=base
   CATEGORY:=GL.iNet
   TITLE:=GL.iNet runtime defaults for GL-MT5000
+  VERSION:=$(PKG_VERSION)
   DEPENDS:=+luci
   PKGARCH:=all
 endef
@@ -84,5 +89,12 @@ $(eval $(call BuildPackage,glinet-mt5000-defaults))
 EOF
 
 log "runtime package created: ${PKG_DIR#"${TREE}"/}"
+
+# sanity check: OpenWrt 2026 refuses to build a package without these fields
+for field in TITLE CATEGORY SECTION VERSION; do
+	grep -qE "^[[:space:]]*${field}:=" "${PKG_DIR}/Makefile" || \
+		die "the package Makefile has no ${field} field (OpenWrt 2026 requires it)"
+done
+
 find "${PKG_DIR}/files" -type f | sed "s|${PKG_DIR}/|    |"
 exit 0
