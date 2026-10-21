@@ -177,8 +177,47 @@ git diff patches/vanilla/kernel/
 > порядке, и наши должны идти **после** всех штатных патчей OpenWrt
 > (сейчас максимальный номер в `pending-6.18` — 936, в `backport-6.18` — 942).
 
-## 7. Отладка
+## 6.2. Релизы и имена файлов
 
+Каждый билд получает идентификатор (он же тег GitHub-релиза и префикс имён файлов):
+
+```
+mt5000-<источник>-<ветка/тег>-<драйвер свитча>-<YYYYMMDD-HHMM UTC>
+```
+
+Например:
+
+```
+mt5000-upstream-main-dsa-20261021-1432
+mt5000-glinet-mt5000-swconfig-20261021-1432
+```
+
+Штамп времени можно задать вручную (иначе берётся текущее время UTC):
+
+```bash
+./scripts/build.sh --workdir build --source upstream --ref main --stamp 20261021-1432
+```
+
+В каталоге вывода появляются:
+
+| Файл | Содержимое |
+|---|---|
+| `mt5000-…-<stamp>-openwrt-…-sysupgrade.bin` | образ для sysupgrade |
+| `mt5000-…-<stamp>-openwrt-…-factory.bin` | полный образ для U-Boot |
+| `mt5000-…-<stamp>.config` / `.config.buildinfo` | конфигурация сборки |
+| `build-info.txt` | сводка: источник, ref, коммит, драйвер, ядро, дата |
+| `release.md` | описание релиза (таблица параметров) |
+| `release.json` | тег, имя и параметры релиза в машинном виде |
+| `SHA256SUMS` | контрольные суммы |
+
+Создать такой же релиз локально (в GitHub CLI):
+
+```bash
+gh release create "$(python3 -c "import json;print(json.load(open('build/out/release.json'))['tag'])")" \
+    build/out/* --title "..." --notes-file build/out/release.md
+```
+
+## 7. Отладка
 ```bash
 # применить патчи вручную к локальному дереву
 ./scripts/apply-patches.sh --tree /path/to/openwrt --series patches/vanilla/series --strict

@@ -51,7 +51,7 @@ on:
       cron: "37 3 * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   BUILDER_ROOT: "${{ github.workspace }}"
@@ -96,6 +96,8 @@ jobs:
         env:
           CCACHE_DIR: "${{ github.workspace }}/build/ccache"
           DEBIAN_FRONTEND: noninteractive
+          # the build stamp is used in the name of the release and of the files
+          BUILD_STAMP: "$(date -u +%Y%m%d-%H%M)"
         run: |
           mkdir -p build
           ./scripts/build.sh \
@@ -106,6 +108,7 @@ jobs:
             --switch-driver "${{ inputs.switch_driver || 'dsa' }}" \
             --profile "${{ inputs.profile || 'full' }}" \
             --jobs "${{ inputs.jobs || '8' }}" \
+            --stamp "${BUILD_STAMP}" \
             $([ "${{ inputs.strict_patches == false }}" = "true" ] && echo "--no-strict" || echo "--strict")
 
       - name: Collect the artifacts
@@ -119,6 +122,35 @@ jobs:
             cp -f "${WORK_DIR}/openwrt/.config" artifacts/config-used.config || true
           fi
           ls -la artifacts
+
+      - name: Create the release
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f artifacts/release.json ]; then
+            echo "::warning::no release metadata - the release is not created"
+            exit 0
+          fi
+          TAG="$(python3 -c "import json;print(json.load(open('artifacts/release.json'))['tag'])")"
+          NAME="$(python3 -c "import json;print(json.load(open('artifacts/release.json'))['name'])")"
+          echo "::notice::creating the release ${TAG}"
+          NOTES="$(mktemp)"
+          {
+            cat artifacts/release.md
+            echo
+            echo "### Файлы релиза"
+            echo
+            echo '```'
+            ls -1 artifacts/ | grep -vE "^(release\.json|release\.md)$"
+            echo '```'
+          } > "${NOTES}"
+          FILES="$(ls artifacts/ | grep -vE "^(release\.json|release\.md)$" | sed 's|^|artifacts/|' | tr '\n' ' ')"
+          # shellcheck disable=SC2086
+          gh release create "${TAG}" ${FILES} \
+            --title "${NAME}" \
+            --notes-file "${NOTES}" \
+            || gh release upload "${TAG}" --clobber ${FILES}
 
       - name: Upload the firmware
         uses: actions/upload-artifact@v4

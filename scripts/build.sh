@@ -27,6 +27,7 @@ EXTRA_FRAGMENTS=()
 SKIP_DOWNLOAD=0
 SKIP_BUILD=0
 SKIP_VERIFY=0
+STAMP=""
 # in CI every patch has to apply, locally a failing patch is only a warning
 STRICT="${STRICT_PATCHES:-}"
 if [ -z "${STRICT}" ]; then
@@ -46,6 +47,7 @@ while [ $# -gt 0 ]; do
 		--skip-download)  SKIP_DOWNLOAD=1; shift ;;
 		--skip-build)     SKIP_BUILD=1; shift ;;
 		--skip-verify)    SKIP_VERIFY=1; shift ;;
+		--stamp)          STAMP="$2"; shift 2 ;;
 		--strict)         STRICT=1; shift ;;
 		--no-strict)      STRICT=0; shift ;;
 		-h|--help)        awk 'NR>1 && /^#/ {print; next} NR>1 {exit}' "$0"; exit 0 ;;
@@ -110,8 +112,13 @@ fi
 
 # ---------------------------------------------------------------------------
 log "collecting the artifacts"
+[ -n "${STAMP}" ] || STAMP="$(build_stamp)"
+RELEASE_ID="$(release_id "${SOURCE}" "${REF}" "${SWITCH_DRIVER}" "${STAMP}")"
+log "release id: ${RELEASE_ID}"
+
 "${BUILDER_ROOT}/scripts/collect-artifacts.sh" --tree "${TREE}" --out "${OUT}" \
-	--flavour "${FLAVOUR}" --switch-driver "${SWITCH_DRIVER}"
+	--flavour "${FLAVOUR}" --switch-driver "${SWITCH_DRIVER}" \
+	--source "${SOURCE}" --ref "${REF}" --stamp "${STAMP}" --release-id "${RELEASE_ID}"
 
 log "build finished, artifacts are in ${OUT}"
 exit 0

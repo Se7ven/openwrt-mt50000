@@ -45,7 +45,7 @@
 | `merge-config.py` | слияние конфиг-фрагментов с `.config` (в upstream в 2026 году убрали режим `diffconfig.sh -m`, поэтому merger свой). Умеет разбирать `tmp/.config-target.in` и снимать остальных членов Kconfig-`choice` (target/subtarget/устройство) — без этого `make defconfig` оставляет старый профиль, а новый молча выбрасывает. |
 | `verify-kernel-patches.sh` | предполётная проверка kernel-патчей: распаковывает ядро, применяет относящиеся к нашим файлам патчи OpenWrt и проверяет наши патчи — иначе сборка падает в `toolchain/kernel-headers` через час работы. |
 | `build.sh` | главный оркестратор: fetch → patches → runtime → feeds → config → `make download` → `make` → collect. |
-| `collect-artifacts.sh` | копирование готовых образов (`*gl-mt5000*`), `.config`, `config.buildinfo` в каталог вывода + `SHA256SUMS` + `build-info.txt`. |
+| `collect-artifacts.sh` | копирование готовых образов (`*gl-mt5000*`), `.config`, `config.buildinfo` в каталог вывода + `SHA256SUMS` + `build-info.txt`. Файлы получают префикс `<release id>` = `mt5000-<источник>-<ветка/тег>-<драйвер>-<дата-время UTC>`, он же используется как тег GitHub-релиза. Рядом кладутся `release.md` (описание релиза) и `release.json` (тег/имя/параметры — их использует workflow). |
 
 Все скрипты — POSIX/bash, запускаются из корня репозитория, путь к репозиторию определяется автоматически (`BUILDER_ROOT`).
 

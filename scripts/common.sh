@@ -75,3 +75,34 @@ target_patch_dir() {
 file_sha256() {
 	sha256sum "$1" | cut -d' ' -f1
 }
+
+# --------------------------------------------------------------- releases ---
+# sanitize_ref <ref> - make a git ref safe for a file or tag name
+sanitize_ref() {
+	echo "$1" | sed 's|[^A-Za-z0-9._-]|_|g; s|__*|_|g; s|^_||; s|_$||'
+}
+
+# build_stamp - the build date/time (UTC), e.g. "20261021-1432"
+build_stamp() {
+	date -u +%Y%m%d-%H%M
+}
+
+# build_date - the build date (UTC), e.g. "2026-10-21"
+build_date() {
+	date -u +%Y-%m-%d
+}
+
+# release_id <source> <ref> <driver> <stamp> - the identifier of a build
+#
+# It is used as the release tag and as the prefix of the file names, so it
+# always shows how the image was built:
+#
+#   mt5000-upstream-main-dsa-20261021-1432
+#   mt5000-glinet-mt5000-swconfig-20261021-1432
+release_id() {
+	printf 'mt5000-%s-%s-%s-%s' \
+		"${1:-unknown}" \
+		"$(sanitize_ref "${2:-unknown}")" \
+		"${3:-unknown}" \
+		"${4:-$(build_stamp)}"
+}

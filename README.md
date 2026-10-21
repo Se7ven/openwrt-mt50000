@@ -67,6 +67,35 @@ cd openwrt-gl-mt5000-builder
 
 ---
 
+## 2.4. Релизы
+
+Каждый успешный билд создаёт **GitHub-релиз**, в имени которого видно, как собран образ:
+
+| Пайплайн | Тег (и имя релиза) |
+|---|---|
+| vanilla, ветка `main`, `dsa` | `mt5000-upstream-main-dsa-20261021-1432` |
+| vanilla, тег `v25.12.6`, `swconfig` | `mt5000-upstream-v25.12.6-swconfig-20261021-1432` |
+| GL.iNet, ветка `mt5000`, `dsa` | `mt5000-glinet-mt5000-dsa-20261021-1432` |
+
+Формат тега: `mt5000-<источник>-<ветка/тег>-<драйвер свитча>-<дата и время UTC>`.
+
+Имена файлов внутри релиза имеют тот же префикс, поэтому по имени файла всегда видно
+происхождение сборки, а дата стоит в конце:
+
+```
+mt5000-upstream-main-dsa-20261021-1432-openwrt-mediatek-filogic-glinet_gl-mt5000-squashfs-sysupgrade.bin
+mt5000-upstream-main-dsa-20261021-1432-openwrt-mediatek-filogic-glinet_gl-mt5000-squashfs-factory.bin
+mt5000-upstream-main-dsa-20261021-1432.config
+mt5000-upstream-main-dsa-20261021-1432.config.buildinfo
+SHA256SUMS
+build-info.txt
+```
+
+Описание релиза (`release.md`) содержит таблицу: источник, ветка/тег, коммит, драйвер
+свитча, версия ядра, профиль, дата сборки и использованный конфиг.
+
+---
+
 ## 3. Что лежит в репозитории
 
 Полное описание — в **[docs/REPO-LAYOUT.md](docs/REPO-LAYOUT.md)**. Коротко:
