@@ -152,7 +152,7 @@ jobs:
             --notes-file "${NOTES}" \
             || gh release upload "${TAG}" --clobber ${FILES}
 
-      - name: Upload the firmware
+      - name: Upload the artifacts to the workflow
         uses: actions/upload-artifact@v4
         with:
           name: openwrt-vanilla-${{ inputs.ref || 'main' }}-${{ inputs.switch_driver || 'dsa' }}
