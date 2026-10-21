@@ -27,3 +27,7 @@ __pycache__/
 job-logs.txt
 jobs-logs.txt
 *.log
+
+# архивы логов CI
+logs_*.zip
+logs_*.tgz
