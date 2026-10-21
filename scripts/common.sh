@@ -87,6 +87,14 @@ build_stamp() {
 	date -u +%Y%m%d-%H%M
 }
 
+# valid_stamp <stamp> - check the format YYYYMMDD-HHMM
+#
+# It protects against a stamp that was not evaluated by the shell (e.g. the
+# literal "$(date ...)" from a YAML environment variable).
+valid_stamp() {
+	echo "$1" | grep -qE '^[0-9]{8}-[0-9]{4}$'
+}
+
 # build_date - the build date (UTC), e.g. "2026-10-21"
 build_date() {
 	date -u +%Y-%m-%d

@@ -47,8 +47,15 @@ done
 [ -n "${OUT}" ]  || die "--out is required"
 mkdir -p "${OUT}"
 
+need_cmd python3
+
 [ -n "${SOURCE}" ] || SOURCE="${FLAVOUR}"
-[ -n "${REF}" ] || REF="$(git -C "${TREE}" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+[ -n "${REF}" ] || REF="$(git -C "${TREE}" rev-parse --abbrev-ref HEAD 2>/dev/null | head -1 || true)"
+[ -n "${REF}" ] || REF="unknown"
+if [ -n "${STAMP}" ] && ! valid_stamp "${STAMP}"; then
+	warn "the build stamp '${STAMP}' is not a date (YYYYMMDD-HHMM) - using the current time"
+	STAMP=""
+fi
 [ -n "${STAMP}" ] || STAMP="$(build_stamp)"
 [ -n "${RELEASE_ID}" ] || RELEASE_ID="$(release_id "${SOURCE}" "${REF}" "${SWITCH_DRIVER}" "${STAMP}")"
 
@@ -72,9 +79,12 @@ if [ "${#IMAGES[@]}" -eq 0 ]; then
 fi
 
 # --- build information -----------------------------------------------------
-REPO_URL="$(git -C "${TREE}" remote get-url origin 2>/dev/null | head -1 || echo unknown)"
-COMMIT="$(git -C "${TREE}" rev-parse HEAD 2>/dev/null | head -1 || echo unknown)"
-DESCRIBE="$(git -C "${TREE}" describe --tags --always 2>/dev/null | head -1 || echo unknown)"
+REPO_URL="$(git -C "${TREE}" remote get-url origin 2>/dev/null | head -1 || true)"
+[ -n "${REPO_URL}" ] || REPO_URL="unknown"
+COMMIT="$(git -C "${TREE}" rev-parse HEAD 2>/dev/null | head -1 || true)"
+echo "${COMMIT}" | grep -qE '^[0-9a-f]{7,40}$' || COMMIT="unknown"
+DESCRIBE="$(git -C "${TREE}" describe --tags --always 2>/dev/null | head -1 || true)"
+[ -n "${DESCRIBE}" ] || DESCRIBE="unknown"
 KERNEL="$(kernel_series "${TREE}")"
 BUILD_DATE="$(date -u -d "${STAMP:0:4}-${STAMP:4:2}-${STAMP:6:2}" +%Y-%m-%d 2>/dev/null || build_date)"
 BUILD_TIME="${STAMP:9:2}:${STAMP:11:2}"
@@ -121,20 +131,30 @@ EOF
 } > "${OUT}/release.md"
 
 # machine readable metadata (used by the GitHub Actions workflow)
-cat > "${OUT}/release.json" <<EOF
-{
-  "tag": "${RELEASE_ID}",
-  "name": "${TITLE}",
-  "source": "${SOURCE}",
-  "ref": "${REF}",
-  "commit": "${COMMIT}",
-  "switch_driver": "${SWITCH_DRIVER}",
-  "kernel": "${KERNEL}",
-  "flavour": "${FLAVOUR}",
-  "date": "${BUILD_DATE}",
-  "stamp": "${STAMP}"
+python3 - "${OUT}/release.json" \
+	"${RELEASE_ID}" "${TITLE}" "${SOURCE}" "${REF}" "${COMMIT}" "${DESCRIBE}" \
+	"${REPO_URL}" "${SWITCH_DRIVER}" "${KERNEL}" "${FLAVOUR}" "${BUILD_DATE}" "${STAMP}" <<'PY'
+import json, sys
+(path, tag, name, source, ref, commit, describe, repo, driver, kernel,
+ flavour, date, stamp) = sys.argv[1:14]
+data = {
+    "tag": tag,
+    "name": name,
+    "source": source,
+    "ref": ref,
+    "commit": commit,
+    "describe": describe,
+    "repository": repo,
+    "switch_driver": driver,
+    "kernel": kernel,
+    "flavour": flavour,
+    "date": date,
+    "stamp": stamp,
 }
-EOF
+with open(path, "w") as fh:
+    json.dump(data, fh, indent=2, ensure_ascii=False)
+    fh.write("\n")
+PY
 
 # --- the configuration and the checksums ------------------------------------
 if [ -f "${TREE}/.config" ]; then

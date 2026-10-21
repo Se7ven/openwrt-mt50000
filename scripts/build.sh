@@ -112,6 +112,10 @@ fi
 
 # ---------------------------------------------------------------------------
 log "collecting the artifacts"
+if [ -n "${STAMP}" ] && ! valid_stamp "${STAMP}"; then
+	warn "the build stamp '${STAMP}' is not a date (YYYYMMDD-HHMM) - using the current time"
+	STAMP=""
+fi
 [ -n "${STAMP}" ] || STAMP="$(build_stamp)"
 RELEASE_ID="$(release_id "${SOURCE}" "${REF}" "${SWITCH_DRIVER}" "${STAMP}")"
 log "release id: ${RELEASE_ID}"

@@ -96,10 +96,12 @@ jobs:
         env:
           CCACHE_DIR: "${{ github.workspace }}/build/ccache"
           DEBIAN_FRONTEND: noninteractive
-          # the build stamp is used in the name of the release and of the files
-          BUILD_STAMP: "$(date -u +%Y%m%d-%H%M)"
         run: |
           mkdir -p build
+          # the build stamp is used in the name of the release and of the files
+          # (it has to be evaluated by the shell, not by the YAML parser)
+          BUILD_STAMP="$(date -u +%Y%m%d-%H%M)"
+          echo "build stamp: ${BUILD_STAMP}"
           ./scripts/build.sh \
             --workdir "${WORK_DIR}" \
             --source upstream \
