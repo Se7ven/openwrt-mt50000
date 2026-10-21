@@ -131,12 +131,12 @@ new_block = (block
              .replace("goto err_unreg_netdev;", "goto err_deinit_ppe;"))
 txt = txt[:m.start()] + new_block + "\n" + txt[m.start():]
 
-# free the dummy device on the error path
+# free the dummy device on the error path (no extra label: a label that is
+# never jumped to would break the build with -Werror=unused-label)
 label = "err_unreg_netdev:\n\tmtk_unreg_dev(eth);\n"
 if label not in txt:
     sys.exit("the error label err_unreg_netdev was not found")
 txt = txt.replace(label, label +
-                  "err_free_dummy:\n"
                   "\tnetif_napi_del(&eth->tx_napi);\n"
                   "\tnetif_napi_del(&eth->rx_napi);\n"
                   "\tfree_netdev(eth->dummy_dev);\n"
@@ -181,7 +181,7 @@ old_block = (block
                       "for NAPI to work\n")
              .replace("goto err_deinit_ppe;", "goto err_unreg_netdev;"))
 txt = txt.replace("\n\tplatform_set_drvdata(pdev, eth);", "\n" + old_block + "\n\tplatform_set_drvdata(pdev, eth);", 1)
-txt = txt.replace("err_free_dummy:\n\tnetif_napi_del(&eth->tx_napi);\n\tnetif_napi_del(&eth->rx_napi);\n\tfree_netdev(eth->dummy_dev);\n\teth->dummy_dev = NULL;\n", "", 1)
+txt = txt.replace("\tnetif_napi_del(&eth->tx_napi);\n\tnetif_napi_del(&eth->rx_napi);\n\tfree_netdev(eth->dummy_dev);\n\teth->dummy_dev = NULL;\n", "", 1)
 open(before, "w").write(txt)
 PY
 

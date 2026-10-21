@@ -206,3 +206,5 @@ cd /path/to/openwrt && make defconfig && \
 | `luci-app-*` не появился | пакет переименован, см. `config/fragments/40-luci.config` |
 | пакет `glinet-mt5000-defaults` не создан | в `package/glinet-mt5000-defaults/Makefile` не хватает `include $(INCLUDE_DIR)/package.mk` |
 | `Package/glinet-mt5000-defaults is missing the VERSION field` | OpenWrt 2026 (сборка через `apk`) требует у пакета поля `TITLE`, `CATEGORY`, `SECTION` и `VERSION` — они задаются в `scripts/install-runtime.sh` |
+| `No targets specified and no makefile found` (в `build_dir/...//.built`) | `PKG_NAME`/`PKG_VERSION` должны быть заданы **до** `include $(INCLUDE_DIR)/package.mk`: `include/package.mk` вычисляет `PKG_BUILD_DIR` в момент включения. Пакет без исходников также должен объявлять пустой `Build/Compile` и `Build/Prepare` (как `package/base-files`) |
+| `label '...' defined but not used [-Werror=unused-label]` | в kernel-патче осталась метка, на которую никто не переходит — перегенерируйте патч (`tools/regen-kernel-patches.sh`) |

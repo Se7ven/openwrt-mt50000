@@ -60,11 +60,14 @@ cat > "${PKG_DIR}/Makefile" <<'EOF'
 # DHCP pool 192.168.8.100-249, hostname GL-MT5000, IPv6 disabled on WAN, ...).
 #
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/package.mk
 
-# OpenWrt 2026 (apk) requires the fields TITLE, CATEGORY, SECTION and VERSION
+# OpenWrt 2026 (apk) requires the fields TITLE, CATEGORY, SECTION and VERSION.
+# PKG_NAME and PKG_VERSION have to be set *before* package.mk is included:
+# include/package.mk computes PKG_BUILD_DIR from them at include time.
 PKG_NAME:=glinet-mt5000-defaults
 PKG_VERSION:=1.0.0
+
+include $(INCLUDE_DIR)/package.mk
 
 define Package/glinet-mt5000-defaults
   SECTION:=base
@@ -79,6 +82,20 @@ define Package/glinet-mt5000-defaults/description
  Runtime configuration (network, DHCP, firewall, system) that follows the
  defaults of the GL.iNet stock firmware for the GL-MT5000.
 endef
+
+# the package has no sources, it only installs files - the same as
+# package/base-files: create the build directory and skip the compile step
+define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
+endef
+
+define Build/Quilt
+endef
+
+define Build/Compile/Default
+
+endef
+Build/Compile = $(Build/Compile/Default)
 
 define Package/glinet-mt5000-defaults/install
 	$(INSTALL_DIR) $(1)/etc
@@ -95,6 +112,22 @@ for field in TITLE CATEGORY SECTION VERSION; do
 	grep -qE "^[[:space:]]*${field}:=" "${PKG_DIR}/Makefile" || \
 		die "the package Makefile has no ${field} field (OpenWrt 2026 requires it)"
 done
+
+# PKG_NAME/PKG_VERSION have to be set before "include package.mk", otherwise
+# PKG_BUILD_DIR stays empty and the package build fails with
+# "No targets specified and no makefile found"
+python3 - "${PKG_DIR}/Makefile" <<'PY' || die "the package Makefile has a wrong include order"
+import re, sys
+path = sys.argv[1]
+txt = open(path).read()
+name = re.search(r"^PKG_NAME:=", txt, re.M)
+ver = re.search(r"^PKG_VERSION:=", txt, re.M)
+inc = re.search(r"^include \$\(INCLUDE_DIR\)/package\.mk", txt, re.M)
+if not (name and ver and inc):
+    sys.exit(1)
+if name.start() > inc.start() or ver.start() > inc.start():
+    sys.exit(1)
+PY
 
 find "${PKG_DIR}/files" -type f | sed "s|${PKG_DIR}/|    |"
 exit 0
