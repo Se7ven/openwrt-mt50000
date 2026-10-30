@@ -19,7 +19,7 @@
 require-series 6.18
 
 # --- board support -----------------------------------------------------------
-apply   0001-mediatek-dts-add-mt7987a-gl-mt5000.patch
+apply   0001-mediatek-dts-add-mt7987a-glinet-gl-mt5000.patch
 apply   0002-mediatek-image-add-glinet-gl-mt5000.patch
 apply   0003-mediatek-filogic-base-files-add-mt5000-network.patch                driver=dsa
 apply   0003s-mediatek-filogic-base-files-add-mt5000-network-swconfig.patch      driver=swconfig
@@ -27,8 +27,13 @@ apply   0004-mediatek-filogic-base-files-add-mt5000-upgrade.patch
 apply   0005-mediatek-filogic-kconfig-enable-rtl8366ub.patch                     driver=dsa series=6.18
 
 # --- Realtek RTL8366UB switch driver (in-tree DSA) ---------------------------
+# 990-01/990-02 mirror the upstream PR #24237 patches 795-10/795-11
+# (802.1Q tagger is inside 990-01 there). Upstream folds the dummy NAPI fix
+# into 795-11; we keep it split out as 990-03 because that patch is the one
+# whose context moves with the kernel and tools/regen-kernel-patches.sh
+# regenerates it automatically.
 pending kernel/990-01-net-dsa-realtek-add-rtl8366ub.patch                       driver=dsa
-pending kernel/990-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch                 driver=dsa
+pending kernel/990-02-net-mediatek-rtl8366ub-ppe-offload.patch                  driver=dsa
 
 # --- MediaTek ethernet driver fix (not related to the switch) ----------------
 pending kernel/990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch optional

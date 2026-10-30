@@ -55,7 +55,7 @@ sysupgrade openwrt-mediatek-filogic-glinet_gl-mt5000-squashfs-sysupgrade.bin
 ```
 
 Проще всего использовать `factory.bin`: он содержит ядро и rootfs, готовые к записи в eMMC.
-Схема разделов описана в `target/linux/mediatek/dts/mt7987a-gl-mt5000.dts`
+Схема разделов описана в `target/linux/mediatek/dts/mt7987a-glinet-gl-mt5000.dts`
 (в разделе `partitions`):
 
 ```

@@ -30,35 +30,39 @@ need_cmd() {
 
 # kernel_series <openwrt-dir> - print the kernel series of the tree, e.g. "6.18"
 kernel_series() {
-	local tree="$1"
-	local d
-	# the kernel series is the version of the "include/kernel-<series>" file
-	for d in "${tree}"/include/kernel-*; do
-		[ -d "$d" ] || continue
-		basename "$d" | sed 's/^kernel-//'
+	local tree="$1" d v
+	# this builder targets the mediatek target: the kernel version is the
+	# KERNEL_PATCHVER of the target Makefile (the tree can carry several
+	# kernel series while a kernel bump is in progress)
+	if [ -f "${tree}/target/linux/mediatek/Makefile" ]; then
+		v="$(sed -n 's/^KERNEL_PATCHVER[:= ]*\([0-9][0-9.]*\).*/\1/p' \
+			"${tree}/target/linux/mediatek/Makefile" | head -1)"
+		[ -n "${v}" ] && { echo "${v}"; return 0; }
+	fi
+	# the kernel series can also be an "include/kernel-<series>" directory
+	for d in "${tree}"/include/kernel-[0-9]*; do
+		[ -d "${d}" ] || continue
+		basename "${d}" | sed 's/^kernel-//'
 		return 0
 	done
-	# some trees keep the kernel configuration in the generic target
-	for d in "${tree}"/target/linux/generic/kernel-*; do
-		[ -d "$d" ] || continue
-		basename "$d" | sed 's/^kernel-//'
-		return 0
-	done
-	# fallback: the "pending-<series>" directory of the generic target
-	for d in "${tree}"/target/linux/generic/pending-*; do
-		[ -d "$d" ] || continue
-		basename "$d" | sed 's/^pending-//'
-		return 0
-	done
+	# trees keep the kernel version in generic/kernel-<series> (file or dir)
+	d="$(ls -d "${tree}"/target/linux/generic/kernel-[0-9]* 2>/dev/null | sort -V | tail -1)"
+	[ -n "${d}" ] && { basename "${d}" | sed 's/^kernel-//'; return 0; }
+	# fallback: the highest "pending-<series>" directory of the generic target
+	d="$(ls -d "${tree}"/target/linux/generic/pending-* 2>/dev/null | sort -V | tail -1)"
+	[ -n "${d}" ] && { basename "${d}" | sed 's/^pending-//'; return 0; }
 	echo "unknown"
 }
 
-# pending_dir <openwrt-dir> - print the kernel pending patch directory of the tree
+# pending_dir <openwrt-dir> - print the "pending-<series>" directory of the tree
 pending_dir() {
-	local tree="$1" d
-	for d in "${tree}"/target/linux/generic/pending-*; do
-		[ -d "$d" ] && { echo "$d"; return 0; }
-	done
+	local tree="$1" d s
+	s="$(kernel_series "${tree}")"
+	[ -n "${s}" ] && [ -d "${tree}/target/linux/generic/pending-${s}" ] && {
+		echo "${tree}/target/linux/generic/pending-${s}"; return 0
+	}
+	d="$(ls -d "${tree}"/target/linux/generic/pending-* 2>/dev/null | sort -V | tail -1)"
+	[ -n "${d}" ] && { echo "${d}"; return 0; }
 	echo ""
 }
 

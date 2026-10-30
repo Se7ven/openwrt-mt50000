@@ -7,8 +7,8 @@ internal 2.5G PHY (gmac1) used as WAN.
 Taken as-is from the GL.iNet mt5000 branch (see patches/vanilla/series).
 
 --- /dev/null
-+++ b/target/linux/mediatek/dts/mt7987a-gl-mt5000.dts
-@@ -0,0 +1,251 @@
++++ b/target/linux/mediatek/dts/mt7987a-glinet-gl-mt5000.dts
+@@ -0,0 +1,253 @@
 +/* SPDX-License-Identifier: (GPL-2.0 OR MIT) */
 +
 +/dts-v1/;
@@ -29,9 +29,11 @@ Taken as-is from the GL.iNet mt5000 branch (see patches/vanilla/series).
 +		led-failsafe = &led_power;
 +		led-running = &led_power;
 +		led-upgrade = &led_power;
++		serial0 = &uart0;
 +	};
 +
 +	chosen {
++		stdout-path = "serial0:115200n8";
 +		bootargs = "console=ttyS0,115200n1 loglevel=8  \
 +				earlycon=uart8250,mmio32,0x11000000 \
 +				root=PARTLABEL=rootfs rootwait \
@@ -62,20 +64,20 @@ Taken as-is from the GL.iNet mt5000 branch (see patches/vanilla/series).
 +	leds {
 +		compatible = "gpio-leds";
 +
-+		led_power: led@0 {
++		led_power: led-0 {
 +			color = <LED_COLOR_ID_BLUE>;
 +			function = "run";
 +			gpios = <&pio 44 GPIO_ACTIVE_LOW>;
 +			default-state = "on";
 +		};
 +
-+		led@1 {
++		led-1 {
 +			color = <LED_COLOR_ID_WHITE>;
 +			function = "system";
 +			gpios = <&pio 7 GPIO_ACTIVE_LOW>;
 +		};
 +
-+		led@2 {
++		led-2 {
 +			color = <LED_COLOR_ID_WHITE>;
 +			function = "vpn";
 +			gpios = <&pio 43 GPIO_ACTIVE_LOW>;

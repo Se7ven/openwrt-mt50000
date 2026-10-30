@@ -79,7 +79,7 @@ pending kernel/940-...    # патч копируется в target/linux/generi
 
 | Файл | Что делает | Источник |
 |---|---|---|
-| `0001-mediatek-dts-add-mt7987a-gl-mt5000.patch` | добавляет `target/linux/mediatek/dts/mt7987a-gl-mt5000.dts` | ветка `mt5000` GL.iNet |
+| `0001-mediatek-dts-add-mt7987a-glinet-gl-mt5000.patch` | добавляет `target/linux/mediatek/dts/mt7987a-glinet-gl-mt5000.dts` | ветка `mt5000` GL.iNet |
 | `0002-mediatek-image-add-glinet-gl-mt5000.patch` | добавляет определение образа `Device/glinet_gl-mt5000` в `target/linux/mediatek/image/filogic.mk` | ветка `mt5000` GL.iNet |
 | `0003-mediatek-filogic-base-files-add-mt5000-network.patch` | `board.d/02_network` (DSA): LAN = `lan1 lan2` (порты DSA-свитча), WAN = `eth1` | ветка `mt5000` GL.iNet |
 | `0003s-mediatek-filogic-base-files-add-mt5000-network-swconfig.patch` | `board.d/02_network` (swconfig): LAN = `eth0.1`, коммутатор `switch0` с портами `0:lan`, `1:lan`, `17@eth0` — как в стоке GL.iNet | стоковая прошивка GL.iNet 4.9.0 |
@@ -90,9 +90,9 @@ pending kernel/940-...    # патч копируется в target/linux/generi
 
 | Файл | Что делает | Оригинал GL.iNet |
 |---|---|---|
-| `990-01-net-dsa-realtek-add-rtl8366ub.patch` | **in-tree DSA-драйвер RTL8366UB** (`drivers/net/dsa/realtek/rtl8366ub_*`, Kconfig `NET_DSA_REALTEK_RTL8366UB`) | `795-10-net-dsa-realtek-add-rtl8366ub.patch` |
-| `990-02-net-dsa-rtl8366ub-8021q-ppe-offload.patch` | теггер `NET_DSA_TAG_RTL8366UB_8021Q` + поддержка offload в `mtk_ppe_offload` (без него PPE не видит EtherType и не работает WAN→LAN offload) | `795-11-net-dsa-rtl8366ub-8021q-ppe-offload.patch` |
-| `990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch` | фикс гонки в `mtk_eth_soc.c` (dummy NAPI device) — нужен, чтобы сеть поднималась без ошибок | `795-12-net-mediatek-init-dummy-napi-before-netdev-registration.patch` |
+| `990-01-net-dsa-realtek-add-rtl8366ub.patch` | **in-tree DSA-драйвер RTL8366UB + 802.1Q-теггер** (`drivers/net/dsa/realtek/rtl8366ub_*`, `net/dsa/tag_rtl8366ub_8021q.c`, Kconfig `NET_DSA_REALTEK_RTL8366UB`, `NET_DSA_TAG_RTL8366UB_8021Q`) | `795-10-net-dsa-realtek-add-rtl8366ub.patch` |
+| `990-02-net-mediatek-rtl8366ub-ppe-offload.patch` | интеграция теггера с `mtk_eth_soc`/`mtk_ppe_offload`/flowtable (без него PPE не видит EtherType и не работает WAN→LAN offload); hunks dummy-NAPI из него вынесены в `990-03`; hunks ребейснуты на текущий main (учтён реворк PPE из `797-01`/`797-02` и целочисленный возврат `nft_dev_path_info`) | `795-11-net-mediatek-rtl8366ub-ppe-offload.patch` |
+| `990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch` | фикс гонки в `mtk_eth_soc.c` (dummy NAPI device) — нужен, чтобы сеть поднималась без ошибок; upstream влил эти hunks в `795-11`, у нас он остаётся отдельным регенерируемым патчем | hunks из `795-11-net-mediatek-rtl8366ub-ppe-offload.patch` |
 
 Номера переименованы с `795-xx` на `990-xx`, чтобы патчи применялись **после** всех
 штатных патчей OpenWrt (в `pending-6.18` максимальный номер 936, в `backport-6.18` — 942).
