@@ -91,14 +91,15 @@ pending kernel/940-...    # патч копируется в target/linux/generi
 | Файл | Что делает | Оригинал GL.iNet |
 |---|---|---|
 | `990-01-net-dsa-realtek-add-rtl8366ub.patch` | **in-tree DSA-драйвер RTL8366UB + 802.1Q-теггер** (`drivers/net/dsa/realtek/rtl8366ub_*`, `net/dsa/tag_rtl8366ub_8021q.c`, Kconfig `NET_DSA_REALTEK_RTL8366UB`, `NET_DSA_TAG_RTL8366UB_8021Q`) | `795-10-net-dsa-realtek-add-rtl8366ub.patch` |
-| `990-02-net-mediatek-rtl8366ub-ppe-offload.patch` | интеграция теггера с `mtk_eth_soc`/`mtk_ppe_offload`/flowtable (без него PPE не видит EtherType и не работает WAN→LAN offload); hunks dummy-NAPI из него вынесены в `990-03`; hunks ребейснуты на текущий main (учтён реворк PPE из `797-01`/`797-02` и целочисленный возврат `nft_dev_path_info`) | `795-11-net-mediatek-rtl8366ub-ppe-offload.patch` |
-| `990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch` | фикс гонки в `mtk_eth_soc.c` (dummy NAPI device) — нужен, чтобы сеть поднималась без ошибок; upstream влил эти hunks в `795-11`, у нас он остаётся отдельным регенерируемым патчем | hunks из `795-11-net-mediatek-rtl8366ub-ppe-offload.patch` |
+| `990-02-net-mediatek-rtl8366ub-ppe-offload.patch` | интеграция теггера с `mtk_eth_soc`/`mtk_ppe_offload`/flowtable (без него PPE не видит EtherType и не работает WAN→LAN offload); hunks ребейснуты на текущий main (учтены реворк PPE `795-01..795-09`/`797-01`/`797-02`, `num_tags`-проверка и `967-4x`/YT922X, целочисленный возврат `nft_dev_path_info`) | `795-11-net-mediatek-rtl8366ub-ppe-offload.patch` |
 
 Номера переименованы с `795-xx` на `990-xx`, чтобы патчи применялись **после** всех
 штатных патчей OpenWrt (в `pending-6.18` максимальный номер 936, в `backport-6.18` — 942).
 
-Контекст kernel-патчей зависит от версии ядра: `990-03` перегенерирован под
-linux 6.18.55 (актуальная версия в `openwrt/openwrt@main`). При обновлении ядра
+Контекст kernel-патчей зависит от версии ядра: `990-01`/`990-02` перегенерированы
+под linux 6.18.60 с kernel-патчами `openwrt/openwrt@main`. Раньше отдельный
+`990-03` нёс фикс гонки dummy-NAPI из `795-11`; теперь этот фикс есть в самом
+ядре 6.18.60, поэтому патч удалён. При обновлении ядра
 используйте `tools/regen-kernel-patches.sh`, а перед сборкой —
 `scripts/verify-kernel-patches.sh` (предполётная проверка).
 
@@ -117,7 +118,9 @@ linux 6.18.55 (актуальная версия в `openwrt/openwrt@main`). П�
 
 Пересобирает kernel-патч `990-03` под актуальную версию ядра ветки: распаковывает
 ядро, применяет kernel-патчи OpenWrt и наши `990-01`/`990-02`, после чего
-генерирует патч заново. Вызывается вручную, когда ядро в ветке обновилось.
+генерирует патч заново. Если фикс уже влит в ядро upstream (как в 6.18.60),
+скрипт удаляет локальный `990-03`. Вызывается вручную, когда ядро в ветке
+обновилось.
 
 ### `tools/extract-stock-defaults.sh`
 

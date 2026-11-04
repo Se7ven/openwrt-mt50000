@@ -7,7 +7,9 @@
 # the kernel of the branch moves, their context stops matching and the build
 # dies. This script reproduces the kernel patch environment (the kernel
 # tarball + the kernel patches of OpenWrt + our own patches) and regenerates
-# the patch that has to be adapted.
+# the patch that has to be adapted. If the fix turns out to be already part
+# of the kernel (it is upstream since Linux 6.18.60), the script removes the
+# local 990-03 instead.
 #
 # Usage: tools/regen-kernel-patches.sh --tree <openwrt-dir>
 #
@@ -83,6 +85,38 @@ apply_patch_dir "${TREE}/target/linux/generic/backport-${KERNEL_SERIES}"
 apply_patch_dir "${TREE}/target/linux/generic/pending-${KERNEL_SERIES}"
 apply_patch_dir "${TREE}/target/linux/generic/hack-${KERNEL_SERIES}"
 apply_patch_dir "${TREE}/target/linux/mediatek/patches-${KERNEL_SERIES}"
+
+# --- is the dummy NAPI fix already part of the kernel? ----------------------
+# Linux 6.18.60 and newer allocate the dummy NAPI device before registering
+# the netdevs themselves; for such kernels the separate 990-03 patch must not
+# exist at all (applying it would corrupt the probe function).
+OUT="${BUILDER_ROOT}/patches/vanilla/kernel/990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch"
+rc=0
+python3 - "${KDIR}" <<'PY' || rc=$?
+import os, sys
+path = os.path.join(sys.argv[1], "drivers/net/ethernet/mediatek/mtk_eth_soc.c")
+txt = open(path).read()
+alloc = txt.find("eth->dummy_dev = alloc_netdev_dummy(0);")
+loop = txt.find("err = register_netdev(eth->netdev[i]);", alloc)
+if alloc == -1 or loop == -1:
+    sys.exit(1)                       # cannot tell, keep regenerating
+if alloc > loop:
+    sys.exit(1)                       # the old layout, the patch is needed
+if "userspace link-up cannot race" in txt[alloc:loop]:
+    sys.stderr.write("this tree already has our 990-03 applied, run against a clean tree\n")
+    sys.exit(2)
+sys.exit(0)                           # the fix is in the kernel itself
+PY
+if [ "${rc}" -eq 0 ]; then
+    log "the dummy NAPI init fix is already part of linux-${KERNEL_VERSION}"
+    if [ -f "${OUT}" ]; then
+        rm -f "${OUT}"
+        log "removed ${OUT} - drop its entry from patches/vanilla/series and commit"
+    fi
+    exit 0
+elif [ "${rc}" -ne 1 ]; then
+    die "cannot regenerate 990-03 against this tree"
+fi
 
 KDIR="${KDIR}" python3 - <<'PY'
 import os, re, sys
@@ -185,7 +219,7 @@ txt = txt.replace("\tnetif_napi_del(&eth->tx_napi);\n\tnetif_napi_del(&eth->rx_n
 open(before, "w").write(txt)
 PY
 
-OUT="${BUILDER_ROOT}/patches/vanilla/kernel/990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch"
+# --- generate the patch ------------------------------------------------------
 {
 	cat <<EOF
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001

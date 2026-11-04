@@ -125,8 +125,7 @@ build-info.txt
 │   │   ├── 0005-...-rtl8366ub.patch  # kernel config (config-6.18)
 │   │   └── kernel/                # kernel-патчи (устанавливаются в pending-<версия>/)
 │   │       ├── 990-01-net-dsa-realtek-add-rtl8366ub.patch
-│   │       ├── 990-02-net-mediatek-rtl8366ub-ppe-offload.patch
-│   │       └── 990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch
+│   │       └── 990-02-net-mediatek-rtl8366ub-ppe-offload.patch
 │   └── glinet/series              # для ветки GL.iNet патчи не нужны (манифест пуст)
 ├── config/
 │   ├── buildinfo/                 # обязательная часть конфига сборки

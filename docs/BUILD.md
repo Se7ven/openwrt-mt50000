@@ -172,6 +172,9 @@ git diff patches/vanilla/kernel/
 Скрипт сам определяет версию ядра (`target/linux/generic/kernel-<series>`),
 применяет kernel-патчи OpenWrt и наши `990-01`/`990-02`, после чего
 пересобирает `990-03` (фикс гонки в `mtk_eth_soc.c`) под актуальный код ядра.
+Если фикс уже влит в ядро upstream (так стало в linux 6.18.60), скрипт вместо
+этого удаляет локальный `990-03` — его запись нужно убрать из
+`patches/vanilla/series`.
 
 > Номера `990-xx` выбраны с запасом: kernel-патчи применяются в алфавитном
 > порядке, и наши должны идти **после** всех штатных патчей OpenWrt
@@ -238,7 +241,7 @@ cd /path/to/openwrt && make defconfig && \
 |---|---|
 | `the MT5000 device is not selected in .config` | в `.config` остался выбранным другой профиль: target/subtarget/устройство — члены Kconfig-`choice`, и `make defconfig` сохраняет старого члена choice. `scripts/merge-config.py` снимает остальных членов автоматически (`--kconfig tmp/.config-target.in`), но если файл сгенерированной Kconfig отсутствует — снимите старый символ вручную: `# CONFIG_TARGET_mediatek_filogic_DEVICE_openwrt_one is not set` |
 | `patch does not apply` | upstream изменил контекст — прогоните `tools/regen-patches.sh` |
-| `Patch failed! Please fix .../990-03-...` | ядро обновилось и контекст kernel-патча не совпал — `tools/regen-kernel-patches.sh --tree <openwrt>` (см. §6.1); предварительно ловится проверкой `scripts/verify-kernel-patches.sh` |
+| `Patch failed! Please fix .../990-0x-...` | ядро обновилось и контекст kernel-патча не совпал: для `990-03` — `tools/regen-kernel-patches.sh --tree <openwrt>` (см. §6.1, он же удаляет `990-03`, если фикс уже в ядре); для `990-01`/`990-02` — ребейс hunks на новый main вручную (`include/net/dsa.h`, `mtk_ppe_offload.c` меняются чаще всего); предварительно ловится проверкой `scripts/verify-kernel-patches.sh` |
 | `kernel series mismatch` | ветка не 6.18 — нужен `--switch-driver swconfig` (для `dsa` ошибка выглядит как `... needs kernel 6.18, but the tree uses 6.12`) |
 | `unknown package` в `filogic.mk` | в ветке нет `mt7987-2p5g-phy-firmware` — берите `main` |
 | не собирается `kmod-rtl8366ub` | out-of-tree драйвер не совместим с новым ядром → `dsa` |

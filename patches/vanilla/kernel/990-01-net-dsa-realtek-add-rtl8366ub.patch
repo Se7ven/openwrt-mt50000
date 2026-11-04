@@ -22,10 +22,15 @@ preserve business VIDs, and do not mark trapped frames as forwarded.
 Use a native destination mask for control TX so per-port BPDUs and
 software-forwarded membership messages leave only the selected port.
 
+Note (builder rebase): the include/net/dsa.h hunks were regenerated
+against Linux 6.18.60 where the YT921X/YT922X tag protocols were merged
+between the MaxLinear definitions and the end of the protocol list. The
+RTL8366UB definitions keep their upstream position and value 200.
+
 ---
 --- a/drivers/net/dsa/realtek/Kconfig
 +++ b/drivers/net/dsa/realtek/Kconfig
-@@ -43,6 +43,13 @@ config NET_DSA_REALTEK_RTL8366RB
+@@ -43,6 +43,13 @@
  	help
  	  Select to enable support for Realtek RTL8366RB.
  
@@ -41,7 +46,7 @@ software-forwarded membership messages leave only the selected port.
  	depends on (LEDS_CLASS=y || LEDS_CLASS=NET_DSA_REALTEK_RTL8366RB)
 --- a/drivers/net/dsa/realtek/Makefile
 +++ b/drivers/net/dsa/realtek/Makefile
-@@ -21,3 +21,16 @@ rtl8365mb-objs := rtl8365mb_main.o \
+@@ -21,3 +21,16 @@
  		  rtl8365mb_vlan.o \
  		  rtl8365mb_l2.o \
  # end of rtl8365mb-objs
@@ -3404,25 +3409,25 @@ software-forwarded membership messages leave only the selected port.
 +#endif
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h
-@@ -57,6 +57,7 @@ struct tc_action;
+@@ -57,6 +57,7 @@
  #define DSA_TAG_PROTO_BRCM_LEGACY_FCS_VALUE	29
  #define DSA_TAG_PROTO_MXL862_VALUE		30
  #define DSA_TAG_PROTO_MXL862_8021Q_VALUE	31
 +#define DSA_TAG_PROTO_RTL8366UB_8021Q_VALUE	200
- 
- enum dsa_tag_protocol {
- 	DSA_TAG_PROTO_NONE		= DSA_TAG_PROTO_NONE_VALUE,
-@@ -91,6 +92,7 @@ enum dsa_tag_protocol {
+ #define DSA_TAG_PROTO_YT921X_VALUE		32
+ #define DSA_TAG_PROTO_YT922X_VALUE		33
+ #define DSA_TAG_PROTO_YT922X_4B_VALUE		34
+@@ -94,6 +95,7 @@
  	DSA_TAG_PROTO_VSC73XX_8021Q	= DSA_TAG_PROTO_VSC73XX_8021Q_VALUE,
  	DSA_TAG_PROTO_MXL862		= DSA_TAG_PROTO_MXL862_VALUE,
  	DSA_TAG_PROTO_MXL862_8021Q	= DSA_TAG_PROTO_MXL862_8021Q_VALUE,
 +	DSA_TAG_PROTO_RTL8366UB_8021Q	= DSA_TAG_PROTO_RTL8366UB_8021Q_VALUE,
- };
- 
- struct dsa_switch;
+ 	DSA_TAG_PROTO_YT921X		= DSA_TAG_PROTO_YT921X_VALUE,
+ 	DSA_TAG_PROTO_YT922X		= DSA_TAG_PROTO_YT922X_VALUE,
+ 	DSA_TAG_PROTO_YT922X_4B		= DSA_TAG_PROTO_YT922X_4B_VALUE,
 --- a/net/dsa/Kconfig
 +++ b/net/dsa/Kconfig
-@@ -118,6 +118,14 @@ config NET_DSA_TAG_MXL_862XX_8021Q
+@@ -118,6 +118,14 @@
  	  MaxLinear MxL86252 and MxL86282 switches using 802.1Q VLAN-based
  	  tagging instead of their native 8-byte tagging protocol.
  
@@ -3439,7 +3444,7 @@ software-forwarded membership messages leave only the selected port.
  	help
 --- a/net/dsa/Makefile
 +++ b/net/dsa/Makefile
-@@ -36,6 +36,7 @@ obj-$(CONFIG_NET_DSA_TAG_OCELOT_8021Q) +
+@@ -36,6 +36,7 @@
  obj-$(CONFIG_NET_DSA_TAG_QCA) += tag_qca.o
  obj-$(CONFIG_NET_DSA_TAG_RTL4_A) += tag_rtl4_a.o
  obj-$(CONFIG_NET_DSA_TAG_RTL8_4) += tag_rtl8_4.o
@@ -3449,7 +3454,7 @@ software-forwarded membership messages leave only the selected port.
  obj-$(CONFIG_NET_DSA_TAG_TRAILER) += tag_trailer.o
 --- a/net/dsa/tag_8021q.c
 +++ b/net/dsa/tag_8021q.c
-@@ -217,7 +217,7 @@ dsa_port_tag_8021q_vlan_match(struct dsa
+@@ -217,7 +217,7 @@
  int dsa_switch_tag_8021q_vlan_add(struct dsa_switch *ds,
  				  struct dsa_notifier_tag_8021q_vlan_info *info)
  {
@@ -3458,7 +3463,7 @@ software-forwarded membership messages leave only the selected port.
  	int err;
  
  	/* Since we use dsa_broadcast(), there might be other switches in other
-@@ -239,11 +239,22 @@ int dsa_switch_tag_8021q_vlan_add(struct
+@@ -239,11 +239,22 @@
  			err = dsa_port_do_tag_8021q_vlan_add(dp, info->vid,
  							     flags);
  			if (err)
@@ -3482,7 +3487,7 @@ software-forwarded membership messages leave only the selected port.
  }
  
  int dsa_switch_tag_8021q_vlan_del(struct dsa_switch *ds,
-@@ -398,11 +409,17 @@ static int dsa_tag_8021q_setup(struct ds
+@@ -398,11 +409,17 @@
  			dev_err(ds->dev,
  				"Failed to setup VLAN tagging for port %d: %pe\n",
  				port, ERR_PTR(err));
@@ -3501,7 +3506,7 @@ software-forwarded membership messages leave only the selected port.
  }
  
  static void dsa_tag_8021q_teardown(struct dsa_switch *ds)
-@@ -438,6 +455,7 @@ int dsa_tag_8021q_register(struct dsa_sw
+@@ -438,6 +455,7 @@
  	return 0;
  
  err_free:

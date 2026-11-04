@@ -28,12 +28,9 @@ apply   0005-mediatek-filogic-kconfig-enable-rtl8366ub.patch                    
 
 # --- Realtek RTL8366UB switch driver (in-tree DSA) ---------------------------
 # 990-01/990-02 mirror the upstream PR #24237 patches 795-10/795-11
-# (802.1Q tagger is inside 990-01 there). Upstream folds the dummy NAPI fix
-# into 795-11; we keep it split out as 990-03 because that patch is the one
-# whose context moves with the kernel and tools/regen-kernel-patches.sh
-# regenerates it automatically.
+# (802.1Q tagger is inside 990-01 there). Upstream 795-11 also folds in the
+# dummy NAPI fix; that fix is part of Linux 6.18.60 and newer, so we do not
+# carry it. For older kernels tools/regen-kernel-patches.sh can recreate it
+# as a separate pending patch (add the entry back below if it does).
 pending kernel/990-01-net-dsa-realtek-add-rtl8366ub.patch                       driver=dsa
 pending kernel/990-02-net-mediatek-rtl8366ub-ppe-offload.patch                  driver=dsa
-
-# --- MediaTek ethernet driver fix (not related to the switch) ----------------
-pending kernel/990-03-net-mediatek-init-dummy-napi-before-netdev-registration.patch optional
