@@ -1,3 +1,5 @@
+[**Русский**](README.md) · [**English**](README.en.md)
+
 # openwrt-gl-mt5000-builder
 
 Репозиторий для сборки прошивки **OpenWrt** для роутера **GL.iNet GL-MT5000 (Brume 3)**.
@@ -149,8 +151,14 @@ build-info.txt
 │   ├── REPO-LAYOUT.md             # где что лежит и зачем
 │   ├── BUILD.md                   # локальная сборка, кастомизация
 │   ├── FLASHING.md                # прошивка и откат
-│   └── GLINET-DEFAULTS.md         # какие дефолты GL.iNet воспроизведены
-└── README.md
+│   ├── GLINET-DEFAULTS.md         # какие дефолты GL.iNet воспроизведены
+│   └── en/                        # те же документы на английском
+│       ├── REPO-LAYOUT.md
+│       ├── BUILD.md
+│       ├── FLASHING.md
+│       └── GLINET-DEFAULTS.md
+├── README.md                      # этот файл
+└── README.en.md                   # английская версия
 ```
 
 ---

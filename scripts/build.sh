@@ -103,7 +103,7 @@ if [ "${SKIP_DOWNLOAD}" -eq 0 ]; then
 		log "=== 6a/6 checking the kernel patches ==="
 		"${BUILDER_ROOT}/scripts/verify-kernel-patches.sh" --tree "${TREE}" \
 			--series "${SERIES}" --switch-driver "${SWITCH_DRIVER}" || \
-			die "the kernel patches do not fit the kernel of this branch (see docs/BUILD.md)"
+			die "the kernel patches do not fit the kernel of this branch (see docs/en/BUILD.md)"
 	fi
 fi
 if [ "${SKIP_BUILD}" -eq 0 ]; then

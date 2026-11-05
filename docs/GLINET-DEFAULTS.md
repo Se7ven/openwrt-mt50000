@@ -1,3 +1,5 @@
+[**Русский**](GLINET-DEFAULTS.md) · [**English**](en/GLINET-DEFAULTS.md)
+
 # Дефолты GL.iNet: что мы воспроизводим
 
 Источник истины — **официальная стоковая прошивка GL.iNet для MT5000**:

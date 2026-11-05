@@ -148,6 +148,6 @@ done < "${LIST}"
 
 if [ "${RC}" -ne 0 ]; then
 	err "the kernel patch does not fit linux-${KERNEL_VERSION}"
-	err "regenerate it with tools/regen-kernel-patches.sh (see docs/BUILD.md)"
+	err "regenerate it with tools/regen-kernel-patches.sh (see docs/en/BUILD.md)"
 fi
 exit "${RC}"

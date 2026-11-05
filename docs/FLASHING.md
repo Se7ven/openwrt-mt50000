@@ -1,3 +1,5 @@
+[**Русский**](FLASHING.md) · [**English**](en/FLASHING.md)
+
 # Прошивка GL-MT5000
 
 ## 1. Что собирается
