@@ -205,61 +205,30 @@ PY
 # These are not "applied" to the tree, they are *installed* into the kernel
 # pending directory of the target (see patches/vanilla/series).
 #
-# The GL.iNet mt5000 branch mirrors the upstream PR #24237 revisions:
-#   795-10-net-dsa-realtek-add-rtl8366ub.patch        - driver + 802.1Q tagger
-#   795-11-net-mediatek-rtl8366ub-ppe-offload.patch   - mtk_eth_soc/PPE/flowtable
-# The upstream 795-11 also contains the dummy NAPI hunks; they are stripped
-# here because that fix is part of Linux 6.18.60 and newer. For older kernels
-# tools/regen-kernel-patches.sh recreates it as a separate pending patch.
+# The GL.iNet mt5000 branch (as of 2026-11-05) splits the old combined
+# 795-11 patch into two patches:
+#   795-10-net-dsa-realtek-add-rtl8366ub.patch                 - driver + tagger
+#   795-11-net-mediatek-use-native-dsa-special-tags.patch      - mtk_eth_soc
+#   999-90-net-mediatek-rtl8366ub-ppe-offload.patch            - PPE/flowtable
+# Our shipped 990-02 combines the mtk_eth_soc and PPE/flowtable hunks and is
+# rebased onto current main (which merged 795-01..795-09, 797-01/797-02 and
+# 967-4x). The GL.iNet versions are fetched here only as a reference; the
+# shipped 990-02 is NOT overwritten by them.
 #
-# Warning: GL.iNet's 795-11 predates the PPE work that main has picked up
-# since (795-01..795-09, 797-01/797-02, 967-4x: the u16 *wcid parameter, the
-# num_tags VLAN slot check, the YT922X_4B tag case, the integer
-# nft_dev_path_info). Our shipped 990-02 is rebased onto main and keeps that
-# logic. After re-fetching 795-11 here, re-check with
-# scripts/verify-kernel-patches.sh and rebase the hunks by hand if they no
-# longer fit.
+# The dummy NAPI fix is part of Linux 6.18.60 and newer, so it is not needed
+# in 990-02. For older kernels tools/regen-kernel-patches.sh recreates it as
+# a separate pending patch.
 PENDING="target/linux/generic/pending-6.18"
 mkdir -p "${OUT}/kernel"
 fetch "${GLINET}/${PENDING}/795-10-net-dsa-realtek-add-rtl8366ub.patch" \
 	"${OUT}/kernel/990-01-net-dsa-realtek-add-rtl8366ub.patch"
-fetch "${GLINET}/${PENDING}/795-11-net-mediatek-rtl8366ub-ppe-offload.patch" \
-	"${WORK}/795-11.raw"
-python3 - "${WORK}/795-11.raw" "${OUT}/kernel/990-02-net-mediatek-rtl8366ub-ppe-offload.patch" <<'PY'
-import sys
-src, dst = sys.argv[1], sys.argv[2]
-lines = open(src).read().split('\n')
-out, i = [], 0
-while i < len(lines) and not lines[i].startswith('--- a/'):
-    out.append(lines[i]); i += 1
-while i < len(lines):
-    out.extend([lines[i], lines[i + 1]]); i += 2
-    while i < len(lines) and not lines[i].startswith('--- a/'):
-        if lines[i].startswith('@@'):
-            h = [lines[i]]; i += 1
-            while i < len(lines) and not lines[i].startswith('@@') and not lines[i].startswith('--- a/'):
-                h.append(lines[i]); i += 1
-            if any('dummy_dev' in l for l in h[1:]):
-                continue          # the dummy NAPI move -> upstream since 6.18.60
-            out.extend(h)
-        else:
-            out.append(lines[i]); i += 1
-txt = '\n'.join(out)
-txt = txt.replace(
-    "Initialize the shared dummy NAPI device before publishing netdevs so\n"
-    "a link-up racing with probe cannot enter mtk_open() too early.\n",
-    "Note: the dummy NAPI initialization fix that upstream folds into this\n"
-    "patch is not needed here: it is part of Linux 6.18.60 and newer. For\n"
-    "older kernels tools/regen-kernel-patches.sh recreates it as a separate\n"
-    "pending patch.\n")
-txt = txt.replace(
-    "Apply after the RTL8366UB switch and tagger patch.",
-    "Apply after the RTL8366UB switch and tagger patch (990-01).")
-open(dst, 'w').write(txt)
-PY
-# 990-03 (dummy NAPI init fix) is not fetched and not shipped: the fix is
-# part of Linux 6.18.60 and newer. For older kernels
-# tools/regen-kernel-patches.sh recreates it as a separate pending patch.
+# Fetch the two reference patches for comparison / manual rebase:
+fetch "${GLINET}/${PENDING}/795-11-net-mediatek-use-native-dsa-special-tags.patch" \
+	"${WORK}/glinet-795-11-native-tags.patch"
+fetch "${GLINET}/${PENDING}/999-90-net-mediatek-rtl8366ub-ppe-offload.patch" \
+	"${WORK}/glinet-999-90-ppe-offload.patch"
+log "GL.iNet reference patches fetched into ${WORK}; 990-02 stays rebased onto main"
+log "re-check with scripts/verify-kernel-patches.sh after any manual rebase"
 
 rm -rf "${WORK}"
 echo "patches regenerated in ${OUT}"

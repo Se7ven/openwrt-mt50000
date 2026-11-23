@@ -93,15 +93,15 @@ pending kernel/940-...    # патч копируется в target/linux/generi
 | Файл | Что делает | Оригинал GL.iNet |
 |---|---|---|
 | `990-01-net-dsa-realtek-add-rtl8366ub.patch` | **in-tree DSA-драйвер RTL8366UB + 802.1Q-теггер** (`drivers/net/dsa/realtek/rtl8366ub_*`, `net/dsa/tag_rtl8366ub_8021q.c`, Kconfig `NET_DSA_REALTEK_RTL8366UB`, `NET_DSA_TAG_RTL8366UB_8021Q`) | `795-10-net-dsa-realtek-add-rtl8366ub.patch` |
-| `990-02-net-mediatek-rtl8366ub-ppe-offload.patch` | интеграция теггера с `mtk_eth_soc`/`mtk_ppe_offload`/flowtable (без него PPE не видит EtherType и не работает WAN→LAN offload); hunks ребейснуты на текущий main (учтены реворк PPE `795-01..795-09`/`797-01`/`797-02`, `num_tags`-проверка и `967-4x`/YT922X, целочисленный возврат `nft_dev_path_info`) | `795-11-net-mediatek-rtl8366ub-ppe-offload.patch` |
+| `990-02-net-mediatek-rtl8366ub-ppe-offload.patch` | интеграция теггера с `mtk_eth_soc`/`mtk_ppe_offload`/flowtable (без него PPE не видит EtherType и не работает WAN→LAN offload); hunks ребейснуты на текущий main (учтены реворк PPE `795-01..795-09`/`797-01`/`797-02`, `num_tags`-проверка и `967-4x`/YT922X, целочисленный возврат `nft_dev_path_info`) | `795-11-net-mediatek-use-native-dsa-special-tags.patch` + `999-90-net-mediatek-rtl8366ub-ppe-offload.patch` (в GL.iNet с 2026-11-05 разделены на два патча) |
 
 Номера переименованы с `795-xx` на `990-xx`, чтобы патчи применялись **после** всех
 штатных патчей OpenWrt (в `pending-6.18` максимальный номер 936, в `backport-6.18` — 942).
 
 Контекст kernel-патчей зависит от версии ядра: `990-01`/`990-02` перегенерированы
-под linux 6.18.60 с kernel-патчами `openwrt/openwrt@main`. Раньше отдельный
+под linux 6.18.64 с kernel-патчами `openwrt/openwrt@main`. Раньше отдельный
 `990-03` нёс фикс гонки dummy-NAPI из `795-11`; теперь этот фикс есть в самом
-ядре 6.18.60, поэтому патч удалён. При обновлении ядра
+ядре (с 6.18.60), поэтому патч удалён. При обновлении ядра
 используйте `tools/regen-kernel-patches.sh`, а перед сборкой —
 `scripts/verify-kernel-patches.sh` (предполётная проверка).
 

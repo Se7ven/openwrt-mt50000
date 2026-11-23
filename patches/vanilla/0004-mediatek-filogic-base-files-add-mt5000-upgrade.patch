@@ -5,16 +5,16 @@ have to accept the device.
 
 --- a/target/linux/mediatek/filogic/base-files/lib/upgrade/platform.sh
 +++ b/target/linux/mediatek/filogic/base-files/lib/upgrade/platform.sh
-@@ -234,6 +234,7 @@
- 	arcadyan,mozart|\
+@@ -238,6 +238,7 @@
+ 	glinet,gl-be14000|\
  	glinet,gl-mt2500|\
  	glinet,gl-mt2500-airoha|\
 +	glinet,gl-mt5000|\
  	glinet,gl-mt6000|\
  	glinet,gl-x3000|\
  	glinet,gl-xe3000|\
-@@ -526,6 +527,7 @@
- 	arcadyan,mozart|\
+@@ -537,6 +538,7 @@
+ 	glinet,gl-be14000|\
  	glinet,gl-mt2500|\
  	glinet,gl-mt2500-airoha|\
 +	glinet,gl-mt5000|\

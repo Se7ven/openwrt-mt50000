@@ -96,15 +96,15 @@ in `swconfig` mode the DSA patches are dropped by the `driver=` condition, and t
 | File | What it does | GL.iNet original |
 |---|---|---|
 | `990-01-net-dsa-realtek-add-rtl8366ub.patch` | **in-tree RTL8366UB DSA driver + 802.1Q tagger** (`drivers/net/dsa/realtek/rtl8366ub_*`, `net/dsa/tag_rtl8366ub_8021q.c`, Kconfig `NET_DSA_REALTEK_RTL8366UB`, `NET_DSA_TAG_RTL8366UB_8021Q`) | `795-10-net-dsa-realtek-add-rtl8366ub.patch` |
-| `990-02-net-mediatek-rtl8366ub-ppe-offload.patch` | tagger integration with `mtk_eth_soc`/`mtk_ppe_offload`/flowtable (without it the PPE cannot see the EtherType and WAN→LAN offload does not work); hunks rebased onto the current main (the PPE rework `795-01..795-09`/`797-01`/`797-02`, the `num_tags` check and `967-4x`/YT922X, and the integer return of `nft_dev_path_info` are taken into account) | `795-11-net-mediatek-rtl8366ub-ppe-offload.patch` |
+| `990-02-net-mediatek-rtl8366ub-ppe-offload.patch` | tagger integration with `mtk_eth_soc`/`mtk_ppe_offload`/flowtable (without it the PPE cannot see the EtherType and WAN→LAN offload does not work); hunks rebased onto the current main (the PPE rework `795-01..795-09`/`797-01`/`797-02`, the `num_tags` check and `967-4x`/YT922X, and the integer return of `nft_dev_path_info` are taken into account) | `795-11-net-mediatek-use-native-dsa-special-tags.patch` + `999-90-net-mediatek-rtl8366ub-ppe-offload.patch` (split into two patches in GL.iNet since 2026-11-05) |
 
 The numbers were renamed from `795-xx` to `990-xx` so that the patches apply **after**
 all regular OpenWrt patches (`pending-6.18`'s highest number is 936, `backport-6.18`'s — 942).
 
 The kernel-patch context depends on the kernel version: `990-01`/`990-02` were
-regenerated for linux 6.18.60 with the kernel patches of `openwrt/openwrt@main`.
+regenerated for linux 6.18.64 with the kernel patches of `openwrt/openwrt@main`.
 Previously a separate `990-03` carried the dummy-NAPI race fix from `795-11`; that fix
-is now in kernel 6.18.60 itself, so the patch was removed. When the kernel is updated,
+is now in the kernel itself (since 6.18.60), so the patch was removed. When the kernel is updated,
 use `tools/regen-kernel-patches.sh`, and before building run
 `scripts/verify-kernel-patches.sh` (preflight check).
 
